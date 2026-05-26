@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import pg from "pg";
+import { AppError } from "../appLogic.js";
 import { loadLocalEnv } from "../config/env.js";
 import { createSeedData } from "../seedData.js";
 import * as schema from "./schema.js";
@@ -55,6 +56,19 @@ export async function readDb() {
   await ensurePostgresSchema(currentPool);
   const orm = drizzle(currentPool, { schema });
   return snapshotFromDb(orm);
+}
+
+export async function readPublicEvent(slug) {
+  const currentPool = getPostgresPool();
+  const orm = drizzle(currentPool, { schema });
+  const [event] = await orm
+    .select()
+    .from(schema.events)
+    .where(eq(schema.events.publicSlug, slug))
+    .limit(1);
+
+  if (!event) throw new AppError("event_not_found", 404);
+  return publicEventPayload(event);
 }
 
 export async function writeDb(db) {
@@ -165,6 +179,22 @@ function normalizeDbShape(db) {
 
 function isEmptyDb(db) {
   return Object.values(db).every((rows) => rows.length === 0);
+}
+
+function publicEventPayload(event) {
+  const dateLabel = String(event.eventDate ?? "").replace(/-/g, ".");
+  return {
+    title: event.title,
+    displayTitle: dateLabel ? `${event.title} (${dateLabel})` : event.title,
+    eventDate: event.eventDate,
+    status: event.status,
+    publicSlug: event.publicSlug,
+    maleCapacity: event.maleCapacity,
+    femaleCapacity: event.femaleCapacity,
+    voteOpensAt: event.voteOpensAt,
+    voteClosesAt: event.voteClosesAt,
+    resultReleasedAt: event.resultReleasedAt,
+  };
 }
 
 function eventRow(event) {

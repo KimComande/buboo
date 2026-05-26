@@ -13,17 +13,24 @@ const emptyVote = {
   comment: "",
 };
 
-export default function EventClient({ slug }) {
-  const [eventData, setEventData] = useState(null);
+export default function EventClient({ slug, initialEventData = null }) {
+  const [eventData, setEventData] = useState(initialEventData);
   const [vote, setVote] = useState(emptyVote);
   const [resultAuth, setResultAuth] = useState({ name: "", phone: "" });
   const [result, setResult] = useState(null);
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialEventData);
   const [lastAuth, setLastAuth] = useState(null);
 
   useEffect(() => {
+    if (initialEventData?.publicSlug === slug) {
+      setEventData(initialEventData);
+      setLoading(false);
+      return undefined;
+    }
+
     let active = true;
+    setLoading(true);
     api(`/api/events/${slug}/public`)
       .then((payload) => {
         if (active) setEventData(payload);
@@ -37,13 +44,14 @@ export default function EventClient({ slug }) {
     return () => {
       active = false;
     };
-  }, [slug]);
+  }, [slug, initialEventData]);
 
   const ownCapacity = vote.gender === "male" ? eventData?.maleCapacity : eventData?.femaleCapacity;
   const targetCapacity = vote.gender === "male" ? eventData?.femaleCapacity : eventData?.maleCapacity;
   const targetGenderText = vote.gender === "male" ? "여성" : vote.gender === "female" ? "남성" : "이성";
   const targetSeatText = vote.gender === "male" ? "여자" : vote.gender === "female" ? "남자" : "이성";
   const canVote = ["ready", "voting"].includes(eventData?.status);
+  const canCheckResult = ["closed", "released", "ended"].includes(eventData?.status);
   const targetOptions = useMemo(() => seatOptions(targetCapacity, true), [targetCapacity]);
 
   function updateVote(field, value) {
@@ -117,7 +125,15 @@ export default function EventClient({ slug }) {
     }
   }
 
-  if (loading) return <main className="event-shell"><p className="empty-state">불러오는 중입니다.</p></main>;
+  if (loading) {
+    return (
+      <main className="event-shell">
+        <div className="loading-state" role="status" aria-label="로딩 중">
+          <span className="loading-spinner" />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="event-shell">
@@ -204,26 +220,28 @@ export default function EventClient({ slug }) {
         </section>
       ) : null}
 
-      <section className="panel">
-        <div className="section-head">
-          <h2>결과 확인</h2>
-          <p>운영자가 결과를 공개한 뒤 이름과 연락처로 확인할 수 있습니다.</p>
-        </div>
-        <form className="form-grid compact" onSubmit={lookupResult}>
-          <label>
-            이름
-            <input required autoComplete="name" placeholder="예시) 김하늘" value={resultAuth.name} onChange={(event) => setResultAuth((current) => ({ ...current, name: event.target.value }))} />
-          </label>
-          <label>
-            연락처
-            <input required inputMode="tel" autoComplete="tel" placeholder="예시) 01011223344 또는 3344" value={resultAuth.phone} onChange={(event) => setResultAuth((current) => ({ ...current, phone: event.target.value }))} />
-          </label>
-          <div className="form-actions">
-            <button className="secondary-button" type="submit">결과 보기</button>
+      {canCheckResult ? (
+        <section className="panel">
+          <div className="section-head">
+            <h2>결과 확인</h2>
+            <p>운영자가 결과를 공개한 뒤 이름과 연락처로 확인할 수 있습니다.</p>
           </div>
-        </form>
-        <ResultView result={result} onReveal={revealContact} />
-      </section>
+          <form className="form-grid compact" onSubmit={lookupResult}>
+            <label>
+              이름
+              <input required autoComplete="name" placeholder="예시) 김하늘" value={resultAuth.name} onChange={(event) => setResultAuth((current) => ({ ...current, name: event.target.value }))} />
+            </label>
+            <label>
+              연락처
+              <input required inputMode="tel" autoComplete="tel" placeholder="예시) 01011223344 또는 3344" value={resultAuth.phone} onChange={(event) => setResultAuth((current) => ({ ...current, phone: event.target.value }))} />
+            </label>
+            <div className="form-actions">
+              <button className="secondary-button" type="submit">결과 보기</button>
+            </div>
+          </form>
+          <ResultView result={result} onReveal={revealContact} />
+        </section>
+      ) : null}
     </main>
   );
 }

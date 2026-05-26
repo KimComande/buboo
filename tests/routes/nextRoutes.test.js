@@ -23,6 +23,18 @@ test("Next API route surface covers participant admin and keepalive flows", () =
   }
 });
 
+test("participant public route uses a light event lookup", () => {
+  const routeSource = readFileSync("app/api/events/[slug]/public/route.js", "utf8");
+  const storeSource = readFileSync("src/store.js", "utf8");
+  const postgresSource = readFileSync("src/db/postgresStore.js", "utf8");
+
+  assert.match(routeSource, /readPublicEvent/);
+  assert.doesNotMatch(routeSource, /readDb/);
+  assert.match(storeSource, /readPublicEvent/);
+  assert.match(postgresSource, /readPublicEvent/);
+  assert.doesNotMatch(postgresSource.match(/export async function readPublicEvent[\s\S]*?(?=\nexport async function|\nasync function|\nfunction |$)/)?.[0] ?? "", /snapshotFromDb/);
+});
+
 test("admin API routes use signed cookie auth and keep admin path hidden", () => {
   const authHelper = readFileSync("src/http/adminAuth.js", "utf8");
   assert.match(authHelper, /buboo_admin_session/);
