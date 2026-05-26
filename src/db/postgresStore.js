@@ -1,8 +1,9 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import pg from "pg";
 import { AppError } from "../appLogic.js";
 import { loadLocalEnv } from "../config/env.js";
+import { validateChoicePair } from "../domain/choices.js";
 import { createSeedData } from "../seedData.js";
 import * as schema from "./schema.js";
 import { setupPostgresSchemaSql, tableNames } from "./schemaSql.js";
@@ -69,6 +70,96 @@ export async function readPublicEvent(slug) {
 
   if (!event) throw new AppError("event_not_found", 404);
   return publicEventPayload(event);
+}
+
+export async function submitSurvey(slug, payload, { now = new Date().toISOString() } = {}) {
+  const currentPool = getPostgresPool();
+  const client = await currentPool.connect();
+  try {
+    await client.query("begin");
+    const orm = drizzle(client, { schema });
+    await orm.execute(sql`select pg_advisory_xact_lock(${advisoryLockId})`);
+
+    const [event] = await orm
+      .select()
+      .from(schema.events)
+      .where(eq(schema.events.publicSlug, slug))
+      .limit(1);
+    if (!event) throw new AppError("event_not_found", 404);
+    if (!["voting", "ready"].includes(event.status)) {
+      throw new AppError("event_not_accepting_votes", 409);
+    }
+
+    const gender = normalizeGender(payload.gender);
+    const seatNo = parseSeatNo(payload.seatNo);
+    const participant = await findParticipantBySeat(orm, event.id, gender, seatNo);
+    if (!participant || !participant.isActive) throw new AppError("participant_slot_not_active", 400);
+
+    const firstChoiceId = await choiceSeatToParticipantId(orm, event, gender, payload.firstChoiceSeatNo);
+    const secondChoiceId = await choiceSeatToParticipantId(orm, event, gender, payload.secondChoiceSeatNo);
+    const validation = validateChoicePair(firstChoiceId, secondChoiceId);
+    if (!validation.ok) throw new AppError(validation.reason, 400);
+
+    const phone = normalizePhone(payload.phone);
+    const name = requiredText(payload.name, "name_required");
+    const nickname = requiredText(payload.nickname, "nickname_required");
+    if (!phone) throw new AppError("phone_required", 400);
+
+    const member = await upsertMember(orm, client, { name, phone, nickname, gender, now });
+    const previousSubmissions = await orm
+      .select()
+      .from(schema.surveySubmissions)
+      .where(eq(schema.surveySubmissions.eventParticipantId, participant.id));
+    const version = previousSubmissions.length + 1;
+    if (previousSubmissions.length) {
+      await orm
+        .update(schema.surveySubmissions)
+        .set({ isLatest: false })
+        .where(eq(schema.surveySubmissions.eventParticipantId, participant.id));
+    }
+
+    const submission = {
+      id: `SUB-${event.id}-${participant.gender}-${participant.seatNo}-v${version}`,
+      eventId: event.id,
+      eventParticipantId: participant.id,
+      memberId: member.id,
+      version,
+      submittedAt: now,
+      name,
+      phone,
+      phoneLast4: phone.slice(-4),
+      nickname,
+      gender,
+      seatNo,
+      firstChoiceId,
+      secondChoiceId,
+      reviewNote: String(payload.reviewNote ?? "").trim(),
+      comment: String(payload.comment ?? "").trim(),
+      isLatest: true,
+      createdAt: now,
+    };
+
+    await orm.insert(schema.surveySubmissions).values(submission);
+    await orm
+      .update(schema.eventParticipants)
+      .set({
+        memberId: member.id,
+        latestSubmissionId: submission.id,
+        attendanceStatus: !participant.attendanceStatus || participant.attendanceStatus === "empty"
+          ? "present"
+          : participant.attendanceStatus,
+        updatedAt: now,
+      })
+      .where(eq(schema.eventParticipants.id, participant.id));
+
+    await client.query("commit");
+    return submission;
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function writeDb(db) {
@@ -179,6 +270,122 @@ function normalizeDbShape(db) {
 
 function isEmptyDb(db) {
   return Object.values(db).every((rows) => rows.length === 0);
+}
+
+async function findParticipantBySeat(orm, eventId, gender, seatNo) {
+  const [participant] = await orm
+    .select()
+    .from(schema.eventParticipants)
+    .where(and(
+      eq(schema.eventParticipants.eventId, eventId),
+      eq(schema.eventParticipants.gender, gender),
+      eq(schema.eventParticipants.seatNo, seatNo),
+    ))
+    .limit(1);
+  return participant ?? null;
+}
+
+async function choiceSeatToParticipantId(orm, event, sourceGender, seatValue) {
+  if (seatValue === undefined || seatValue === null || seatValue === "") {
+    throw new AppError("choice_required", 400);
+  }
+  if (seatValue === "none") return "none";
+
+  const targetGender = sourceGender === "male" ? "female" : "male";
+  const target = await findParticipantBySeat(orm, event.id, targetGender, parseSeatNo(seatValue));
+  if (!target || !target.isActive) throw new AppError("choice_target_not_active", 400);
+  return target.id;
+}
+
+async function upsertMember(orm, client, { name, phone, nickname, gender, now }) {
+  const [existingMember] = await orm
+    .select()
+    .from(schema.members)
+    .where(eq(schema.members.phone, phone))
+    .limit(1);
+
+  if (!existingMember) {
+    const countResult = await client.query("select count(*)::int as count from members");
+    const member = {
+      id: `MEM-${countResult.rows[0].count + 1}`,
+      name,
+      phone,
+      phoneLast4: phone.slice(-4),
+      nickname,
+      canonicalName: name,
+      canonicalNickname: nickname,
+      latestName: name,
+      latestNickname: nickname,
+      nameAliases: [name],
+      nicknameAliases: [nickname],
+      gender,
+      birthYear: "",
+      job: "",
+      height: "",
+      strengths: "",
+      mbti: "",
+      desiredPartner: "",
+      status: "normal",
+      memo: "",
+      firstJoinedAt: now,
+      lastJoinedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    };
+    await orm.insert(schema.members).values(member);
+    return member;
+  }
+
+  const updates = {
+    nameAliases: uniqueAliases([...(existingMember.nameAliases ?? []), name]),
+    nicknameAliases: uniqueAliases([...(existingMember.nicknameAliases ?? []), nickname]),
+    latestName: name,
+    latestNickname: nickname,
+    gender,
+    lastJoinedAt: now,
+    updatedAt: now,
+  };
+  await orm.update(schema.members).set(updates).where(eq(schema.members.id, existingMember.id));
+  return { ...existingMember, ...updates };
+}
+
+function uniqueAliases(values) {
+  const aliases = [];
+  for (const value of values) {
+    const alias = String(value ?? "").trim();
+    if (!alias) continue;
+    const normalized = normalizeName(alias);
+    if (!aliases.some((existing) => normalizeName(existing) === normalized)) {
+      aliases.push(alias);
+    }
+  }
+  return aliases;
+}
+
+function normalizeGender(value) {
+  if (value === "male" || value === "남자") return "male";
+  if (value === "female" || value === "여자") return "female";
+  throw new AppError("invalid_gender", 400);
+}
+
+function parseSeatNo(value) {
+  const seatNo = Number.parseInt(String(value), 10);
+  if (!Number.isInteger(seatNo) || seatNo < 1) throw new AppError("invalid_seat_no", 400);
+  return seatNo;
+}
+
+function requiredText(value, reason) {
+  const text = String(value ?? "").trim();
+  if (!text) throw new AppError(reason, 400);
+  return text;
+}
+
+function normalizeName(value) {
+  return requiredText(value, "name_required").toLowerCase().replace(/\s+/g, "");
+}
+
+function normalizePhone(value) {
+  return String(value ?? "").replace(/\D/g, "");
 }
 
 function publicEventPayload(event) {

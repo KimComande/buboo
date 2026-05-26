@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { createSeedData } from "../../src/seedData.js";
-import { mutateDb, readDb, readPublicEvent, writeDb } from "../../src/store.js";
+import { mutateDb, readDb, readPublicEvent, submitSurveyToStore, writeDb } from "../../src/store.js";
 
 test("mutateDb serializes concurrent file mutations", async () => {
   const previousDataPath = process.env.BUBOO_DATA_PATH;
@@ -79,6 +79,47 @@ test("readPublicEvent returns only participant-facing event metadata in JSON mod
     assert.equal(event.femaleCapacity, 5);
     assert.equal(Object.hasOwn(event, "members"), false);
     assert.equal(Object.hasOwn(event, "surveySubmissions"), false);
+  } finally {
+    if (previousStore === undefined) {
+      delete process.env.BUBOO_STORE;
+    } else {
+      process.env.BUBOO_STORE = previousStore;
+    }
+    if (previousDataPath === undefined) {
+      delete process.env.BUBOO_DATA_PATH;
+    } else {
+      process.env.BUBOO_DATA_PATH = previousDataPath;
+    }
+    await fs.rm(dataPath, { force: true });
+    await fs.rm(`${dataPath}.tmp`, { force: true });
+  }
+});
+
+test("submitSurveyToStore stores participant submissions in JSON mode", async () => {
+  const previousStore = process.env.BUBOO_STORE;
+  const previousDataPath = process.env.BUBOO_DATA_PATH;
+  const dataPath = path.join(process.cwd(), "_codex_runtime", `submit-store-${Date.now()}.json`);
+  delete process.env.BUBOO_STORE;
+  process.env.BUBOO_DATA_PATH = dataPath;
+
+  try {
+    await writeDb(createSeedData({ slug: "demo", eventDate: "2026-05-23", maleCapacity: 1, femaleCapacity: 1 }));
+
+    const submission = await submitSurveyToStore("demo", {
+      gender: "male",
+      seatNo: 1,
+      name: "김하늘",
+      phone: "010-1111-2222",
+      nickname: "하늘",
+      firstChoiceSeatNo: "none",
+      secondChoiceSeatNo: "none",
+      comment: "",
+    });
+    const db = await readDb();
+
+    assert.equal(submission.memberId, "MEM-1");
+    assert.equal(db.surveySubmissions.length, 1);
+    assert.equal(db.eventParticipants[0].latestSubmissionId, submission.id);
   } finally {
     if (previousStore === undefined) {
       delete process.env.BUBOO_STORE;

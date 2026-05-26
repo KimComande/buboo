@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { getPublicEvent } from "./appLogic.js";
+import { getPublicEvent, submitSurvey } from "./appLogic.js";
 import { createSeedData } from "./seedData.js";
 import * as postgresStore from "./db/postgresStore.js";
 
@@ -39,6 +39,11 @@ export async function readPublicEvent(slug) {
   if (activeStoreName() === "postgres") return postgresStore.readPublicEvent(slug);
   const db = await readDb();
   return getPublicEvent(db, slug);
+}
+
+export async function submitSurveyToStore(slug, payload) {
+  if (activeStoreName() === "postgres") return postgresStore.submitSurvey(slug, payload);
+  return mutateDb((db) => submitSurvey(db, slug, payload));
 }
 
 export async function writeDb(db) {

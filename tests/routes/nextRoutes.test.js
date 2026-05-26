@@ -35,6 +35,18 @@ test("participant public route uses a light event lookup", () => {
   assert.doesNotMatch(postgresSource.match(/export async function readPublicEvent[\s\S]*?(?=\nexport async function|\nasync function|\nfunction |$)/)?.[0] ?? "", /snapshotFromDb/);
 });
 
+test("participant submission route uses a dedicated store mutation", () => {
+  const routeSource = readFileSync("app/api/events/[slug]/submissions/route.js", "utf8");
+  const storeSource = readFileSync("src/store.js", "utf8");
+  const postgresSource = readFileSync("src/db/postgresStore.js", "utf8");
+
+  assert.match(routeSource, /submitSurveyToStore/);
+  assert.doesNotMatch(routeSource, /mutateDb/);
+  assert.match(storeSource, /submitSurveyToStore/);
+  assert.match(postgresSource, /export async function submitSurvey/);
+  assert.doesNotMatch(postgresSource.match(/export async function submitSurvey[\s\S]*?(?=\nexport async function|\nasync function|\nfunction |$)/)?.[0] ?? "", /snapshotFromDb/);
+});
+
 test("admin API routes use signed cookie auth and keep admin path hidden", () => {
   const authHelper = readFileSync("src/http/adminAuth.js", "utf8");
   assert.match(authHelper, /buboo_admin_session/);
