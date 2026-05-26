@@ -236,8 +236,8 @@ function MemberTable({ dashboard, keyword, onSave }) {
       member.memo,
       member.job,
       member.height,
-    ].join(" ").toLowerCase();
-    return haystack.includes(keyword.trim().toLowerCase());
+    ].join(" ");
+    return normalizeSearchText(haystack).includes(normalizeSearchText(keyword));
   });
 
   return (
@@ -255,14 +255,14 @@ function MemberTable({ dashboard, keyword, onSave }) {
           </tr>
         </thead>
         <tbody>
-          {members.length ? members.map((member) => <MemberRow key={member.id} member={member} onSave={onSave} />) : <EmptyRow colSpan={7} text="검색 결과가 없습니다." />}
+          {members.length ? members.map((member) => <MemberRow key={member.id} member={member} keyword={keyword} onSave={onSave} />) : <EmptyRow colSpan={7} text="검색 결과가 없습니다." />}
         </tbody>
       </table>
     </div>
   );
 }
 
-function MemberRow({ member, onSave }) {
+function MemberRow({ member, keyword, onSave }) {
   const [form, setForm] = useState({
     nickname: member.nickname ?? "",
     mbti: member.mbti ?? "",
@@ -278,12 +278,22 @@ function MemberRow({ member, onSave }) {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
+  const nameAliases = aliasList(member.nameAliases, member.name);
+  const nicknameAliases = aliasList(member.nicknameAliases, member.nickname);
+  const matchedAliases = matchingAliases(member, keyword);
+  const recentHistory = [...(member.history ?? [])].slice(-3).reverse();
+
   return (
     <tr>
       <td data-label="이름">
         <strong>{member.name}</strong>
         <div className="small-text">닉네임</div>
         <input value={form.nickname} onChange={(event) => update("nickname", event.target.value)} />
+        <div className="alias-stack">
+          {matchedAliases.length ? <div className="match-chip">검색 일치: {matchedAliases.join(", ")}</div> : null}
+          {nameAliases.length ? <div className="small-text">이름 이력: {nameAliases.join(", ")}</div> : null}
+          {nicknameAliases.length ? <div className="small-text">닉네임 이력: {nicknameAliases.join(", ")}</div> : null}
+        </div>
       </td>
       <td data-label="프로필">
         <div className="profile-grid">
@@ -306,11 +316,51 @@ function MemberRow({ member, onSave }) {
         <strong>{bestRankText(member)}</strong>
         <div className="small-text">참여 {member.confirmedParticipationCount ?? member.participationCount ?? 0}회</div>
         <div className="small-text">호감률 {rateText(member.averagePopularityRate)} / 매칭률 {rateText(member.averageMatchRate ?? member.matchedEventRate)}</div>
+        {recentHistory.length ? (
+          <div className="member-history-list">
+            <div className="small-text">최근 참여</div>
+            {recentHistory.map((item) => (
+              <div className="small-text" key={`${item.calculationRunId}-${item.participantId}`}>
+                {item.eventDate} · {item.participantLabel || "-"} · {item.submittedName || "-"} {item.submittedNickname ? `(${item.submittedNickname})` : ""}
+              </div>
+            ))}
+          </div>
+        ) : null}
       </td>
       <td data-label="메모"><input value={form.memo} onChange={(event) => update("memo", event.target.value)} /></td>
       <td data-label="저장"><button className="secondary-button" type="button" onClick={() => onSave(member.id, form)}>저장</button></td>
     </tr>
   );
+}
+
+function aliasList(values, currentValue) {
+  return uniqueText(values).filter((value) => normalizeSearchText(value) !== normalizeSearchText(currentValue));
+}
+
+function matchingAliases(member, keyword) {
+  const normalizedKeyword = normalizeSearchText(keyword);
+  if (!normalizedKeyword) return [];
+  return uniqueText([
+    ...(member.nameAliases ?? []),
+    ...(member.nicknameAliases ?? []),
+  ]).filter((value) => normalizeSearchText(value).includes(normalizedKeyword));
+}
+
+function uniqueText(values) {
+  const seen = new Set();
+  const result = [];
+  for (const value of values ?? []) {
+    const text = String(value ?? "").trim();
+    const key = normalizeSearchText(text);
+    if (!text || seen.has(key)) continue;
+    seen.add(key);
+    result.push(text);
+  }
+  return result;
+}
+
+function normalizeSearchText(value) {
+  return String(value ?? "").trim().toLowerCase();
 }
 
 function TablePanel({ title, columns, children, tableClassName = "" }) {

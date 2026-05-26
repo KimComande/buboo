@@ -365,6 +365,26 @@ th {
   line-height: 1.45;
 }
 
+.alias-stack,
+.member-history-list {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.match-chip {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: var(--text);
+  background: var(--surface-alt);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .search-input {
   max-width: 320px;
 }

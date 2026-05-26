@@ -619,6 +619,7 @@ function buildMemberSummary(db, event, member) {
     const run = db.calculationRuns.find((item) => item.id === stat.calculationRunId);
     const statEvent = db.events.find((item) => item.id === stat.eventId) ?? event;
     const participant = db.eventParticipants.find((item) => item.id === stat.participantId);
+    const submission = latestSubmissionForParticipant(db, stat.participantId);
     const runMatches = matches.filter((match) => match.calculationRunId === stat.calculationRunId);
     const rankDenominator = rankDenominatorForRun(db, stat);
     const popularityRate = popularityRateForStat(db, stat);
@@ -631,6 +632,8 @@ function buildMemberSummary(db, event, member) {
       runNo: run?.runNo ?? null,
       participantId: stat.participantId,
       participantLabel: participant ? `${genderText(participant.gender)} ${participant.seatNo}` : "",
+      submittedName: submission?.name ?? stat.name ?? "",
+      submittedNickname: submission?.nickname ?? stat.nickname ?? "",
       genderRank: stat.genderRank,
       rankDenominator,
       score: stat.score,
@@ -673,6 +676,12 @@ function buildMemberSummary(db, event, member) {
       : null,
     history,
   };
+}
+
+function latestSubmissionForParticipant(db, participantId) {
+  return [...(db.surveySubmissions ?? [])]
+    .filter((submission) => submission.eventParticipantId === participantId)
+    .sort((a, b) => (b.version ?? 0) - (a.version ?? 0))[0] ?? null;
 }
 
 function compareBestRankStats(a, b) {

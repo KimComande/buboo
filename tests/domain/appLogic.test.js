@@ -4,6 +4,7 @@ import { createDemoData } from "../../src/demoData.js";
 import { createSeedData } from "../../src/seedData.js";
 import {
   calculateEvent,
+  createEvent,
   getAdminDashboard,
   getParticipantResult,
   getPublicEvent,
@@ -433,6 +434,68 @@ test("member summary uses released event-level popularity and matching rates", (
   assert.equal(member.averagePopularityRate, 100);
   assert.equal(member.bestRank, 1);
   assert.equal(member.bestRankDenominator, 2);
+});
+
+test("member summary history includes submitted nicknames for alias review", () => {
+  const db = createSeedData({ slug: "demo", eventDate: "2026-01-03", maleCapacity: 1, femaleCapacity: 1 });
+  const first = submitSurvey(db, "demo", {
+    name: "류현식",
+    phone: "010-5282-2266",
+    nickname: "포도",
+    gender: "male",
+    seatNo: 1,
+    firstChoiceSeatNo: "none",
+    secondChoiceSeatNo: "none",
+    comment: "",
+  }, { now: "2026-01-03T10:00:00.000Z" });
+  submitSurvey(db, "demo", {
+    name: "상대",
+    phone: "010-0000-0001",
+    nickname: "상대1",
+    gender: "female",
+    seatNo: 1,
+    firstChoiceSeatNo: "none",
+    secondChoiceSeatNo: "none",
+    comment: "",
+  }, { now: "2026-01-03T10:01:00.000Z" });
+  const firstRun = calculateEvent(db, "demo", { now: "2026-01-03T10:10:00.000Z" });
+  releaseCalculationRun(db, "demo", firstRun.id, { now: "2026-01-03T10:11:00.000Z" });
+
+  const secondEvent = createEvent(db, {
+    title: "두 번째 모임",
+    eventDate: "2026-02-21",
+    maleCapacity: 1,
+    femaleCapacity: 1,
+  }, { now: "2026-02-21T10:00:00.000Z" });
+  submitSurvey(db, secondEvent.publicSlug, {
+    name: "류현식",
+    phone: "01052822266",
+    nickname: "딩동",
+    gender: "male",
+    seatNo: 1,
+    firstChoiceSeatNo: "none",
+    secondChoiceSeatNo: "none",
+    comment: "",
+  }, { now: "2026-02-21T10:02:00.000Z" });
+  submitSurvey(db, secondEvent.publicSlug, {
+    name: "상대",
+    phone: "010-0000-0002",
+    nickname: "상대2",
+    gender: "female",
+    seatNo: 1,
+    firstChoiceSeatNo: "none",
+    secondChoiceSeatNo: "none",
+    comment: "",
+  }, { now: "2026-02-21T10:03:00.000Z" });
+  const secondRun = calculateEvent(db, secondEvent.publicSlug, { now: "2026-02-21T10:10:00.000Z" });
+  releaseCalculationRun(db, secondEvent.publicSlug, secondRun.id, { now: "2026-02-21T10:11:00.000Z" });
+
+  const dashboard = getAdminDashboard(db, secondEvent.publicSlug);
+  const member = dashboard.memberSummaries.find((summary) => summary.id === first.memberId);
+
+  assert.deepEqual(member.nicknameAliases, ["포도", "딩동"]);
+  assert.deepEqual(member.history.map((item) => item.submittedNickname), ["포도", "딩동"]);
+  assert.deepEqual(member.history.map((item) => item.submittedName), ["류현식", "류현식"]);
 });
 
 test("member summary breaks equal best ranks by larger participation denominator", () => {

@@ -69,3 +69,12 @@ test("admin dashboard exposes mobile card labels for dense operational tables", 
   assert.match(css, /td::before/);
   assert.match(css, /content: attr\(data-label\)/);
 });
+
+test("admin member search explains aliases and participation history", () => {
+  const source = readFileSync("src/components/admin/AdminDashboardClient.jsx", "utf8");
+  assert.match(source, /이름 이력/);
+  assert.match(source, /닉네임 이력/);
+  assert.match(source, /최근 참여/);
+  assert.match(source, /submittedNickname/);
+  assert.match(source, /member-history-list/);
+});
