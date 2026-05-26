@@ -132,6 +132,51 @@ a {
   gap: 12px;
 }
 
+.vote-panel {
+  padding: 20px 20px 22px;
+}
+
+.vote-form {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.form-question {
+  gap: 9px;
+  padding: 15px 0;
+  border-top: 1px solid var(--line);
+  color: var(--text);
+}
+
+.form-question:first-child {
+  border-top: 0;
+  padding-top: 2px;
+}
+
+.question-text {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.vote-form input,
+.vote-form select,
+.vote-form textarea {
+  min-height: 48px;
+  border-radius: 4px;
+}
+
+.vote-submit-row {
+  margin-top: 10px;
+}
+
+.vote-submit-row .primary-button {
+  width: 100%;
+  min-height: 52px;
+  font-size: 16px;
+}
+
 .settings-grid {
   grid-template-columns: 2fr 1fr 120px 120px auto;
   align-items: end;
@@ -279,6 +324,12 @@ textarea:focus {
   to {
     transform: rotate(360deg);
   }
+}
+
+.preparing-panel {
+  min-height: 220px;
+  display: grid;
+  align-items: center;
 }
 
 .result-list {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { participantScreenState } from "@/domain/participantScreen.js";
 
 const emptyVote = {
   gender: "",
@@ -50,8 +51,10 @@ export default function EventClient({ slug, initialEventData = null }) {
   const targetCapacity = vote.gender === "male" ? eventData?.femaleCapacity : eventData?.maleCapacity;
   const targetGenderText = vote.gender === "male" ? "여성" : vote.gender === "female" ? "남성" : "이성";
   const targetSeatText = vote.gender === "male" ? "여자" : vote.gender === "female" ? "남자" : "이성";
-  const canVote = ["ready", "voting"].includes(eventData?.status);
-  const canCheckResult = ["closed", "released", "ended"].includes(eventData?.status);
+  const screenState = participantScreenState(eventData?.status);
+  const canVote = screenState === "vote";
+  const isPreparingResult = screenState === "preparing";
+  const canCheckResult = screenState === "result";
   const targetOptions = useMemo(() => seatOptions(targetCapacity, true), [targetCapacity]);
 
   function updateVote(field, value) {
@@ -146,7 +149,7 @@ export default function EventClient({ slug, initialEventData = null }) {
       {message ? <p className="inline-message">{message}</p> : null}
 
       {canVote ? (
-        <section className="panel">
+        <section className="panel vote-panel">
           <div className="section-head">
             <h2>호감도 투표</h2>
             <p>오늘 가장 마음이 갔던 이성을 선택해 주세요.</p>
@@ -155,9 +158,9 @@ export default function EventClient({ slug, initialEventData = null }) {
             </div>
           </div>
 
-          <form className="form-grid" onSubmit={submitVote}>
-            <label>
-              성별
+          <form className="form-grid vote-form" onSubmit={submitVote}>
+            <label className="form-question">
+              <span className="question-text">성별</span>
               <select required value={vote.gender} onChange={(event) => updateVote("gender", event.target.value)}>
                 <option value="">선택</option>
                 <option value="male">남자</option>
@@ -165,39 +168,39 @@ export default function EventClient({ slug, initialEventData = null }) {
               </select>
             </label>
 
-            <label>
-              본인 번호를 선택해주세요
+            <label className="form-question">
+              <span className="question-text">본인 번호를 선택해주세요</span>
               <select required disabled={!vote.gender} value={vote.seatNo} onChange={(event) => updateVote("seatNo", event.target.value)}>
                 <option value="">선택</option>
                 {seatOptions(ownCapacity).map((seat) => <option key={seat} value={seat}>{seat}번</option>)}
               </select>
             </label>
 
-            <label>
-              이름
+            <label className="form-question">
+              <span className="question-text">이름</span>
               <input required autoComplete="name" placeholder="예시) 김하늘" value={vote.name} onChange={(event) => updateVote("name", event.target.value)} />
             </label>
 
-            <label>
-              연락처
+            <label className="form-question">
+              <span className="question-text">연락처</span>
               <input required inputMode="tel" autoComplete="tel" placeholder="예시) 01011223344" value={vote.phone} onChange={(event) => updateVote("phone", event.target.value)} />
             </label>
 
-            <label>
-              들어오시며 말씀주신 닉네임
+            <label className="form-question">
+              <span className="question-text">들어오시며 말씀주신 닉네임</span>
               <input required placeholder="예시) 제이" value={vote.nickname} onChange={(event) => updateVote("nickname", event.target.value)} />
             </label>
 
-            <label>
-              오늘의 1순위 {targetGenderText}분은 누구였나요? ({targetSeatText} __번)
+            <label className="form-question">
+              <span className="question-text">오늘의 1순위 {targetGenderText}분은 누구였나요? ({targetSeatText} __번)</span>
               <select required disabled={!vote.gender} value={vote.firstChoiceSeatNo} onChange={(event) => updateVote("firstChoiceSeatNo", event.target.value)}>
                 <option value="">선택</option>
                 {targetOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
               </select>
             </label>
 
-            <label>
-              오늘의 2순위 {targetGenderText}분은 누구였나요? ({targetSeatText} __번)
+            <label className="form-question">
+              <span className="question-text">오늘의 2순위 {targetGenderText}분은 누구였나요? ({targetSeatText} __번)</span>
               <select required disabled={!vote.gender || vote.firstChoiceSeatNo === "none"} value={vote.secondChoiceSeatNo} onChange={(event) => updateVote("secondChoiceSeatNo", event.target.value)}>
                 <option value="">선택</option>
                 {targetOptions.map((option) => (
@@ -208,23 +211,32 @@ export default function EventClient({ slug, initialEventData = null }) {
               </select>
             </label>
 
-            <label className="wide">
-              [선택] 부부에게 하고 싶은 말
+            <label className="form-question wide">
+              <span className="question-text">[선택] 부부에게 하고 싶은 말</span>
               <textarea rows={4} placeholder="좋거나 불편하셨던 사항을 알려주세요." value={vote.comment} onChange={(event) => updateVote("comment", event.target.value)} />
             </label>
 
-            <div className="form-actions wide">
+            <div className="form-actions wide vote-submit-row">
               <button className="primary-button" type="submit">제출하기</button>
             </div>
           </form>
         </section>
       ) : null}
 
+      {isPreparingResult ? (
+        <section className="panel preparing-panel">
+          <div className="section-head">
+            <h2>결과 정리 중</h2>
+            <p>투표가 마감되어 결과를 정리하고 있습니다. 잠시 후 다시 확인해 주세요.</p>
+          </div>
+        </section>
+      ) : null}
+
       {canCheckResult ? (
         <section className="panel">
           <div className="section-head">
-            <h2>결과 확인</h2>
-            <p>운영자가 결과를 공개한 뒤 이름과 연락처로 확인할 수 있습니다.</p>
+            <h2>매칭 결과 확인</h2>
+            <p>이름과 연락처를 입력하면 매칭 결과를 확인할 수 있습니다.</p>
           </div>
           <form className="form-grid compact" onSubmit={lookupResult}>
             <label>
@@ -252,7 +264,7 @@ function ResultView({ result, onReveal }) {
   if (result.status === "pending") {
     return (
       <div className="result-box">
-        아직 결과를 정리하고 있습니다. 운영자가 최종 확인 후 결과를 공개할 예정입니다.
+        아직 결과를 정리하고 있습니다. 잠시 후 다시 확인해 주세요.
       </div>
     );
   }
@@ -313,8 +325,8 @@ function statusText(status) {
   return ({
     ready: "준비",
     voting: "투표 중",
-    closed: "마감",
-    released: "결과 공개",
+    closed: "결과 정리 중",
+    released: "결과 확인",
     ended: "종료",
   })[status] ?? status ?? "-";
 }

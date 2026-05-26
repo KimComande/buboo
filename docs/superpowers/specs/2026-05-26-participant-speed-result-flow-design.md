@@ -10,8 +10,12 @@ Make the participant voting page feel immediate on mobile during an offline even
 - Server-render the participant event metadata before the client form loads.
 - Replace the initial public event API path with a light event-only lookup.
 - Keep the public API available for client fallback and external smoke checks.
-- Show the result lookup section only when the event status is `closed`, `released`, or `ended`.
+- Keep the participant-facing flow to three screens:
+  - `ready` or `voting`: voting form.
+  - `closed`: result-preparing screen.
+  - `released` or `ended`: result lookup screen.
 - Use a spinner for rare fallback loading states instead of visible loading copy.
+- Present the voting form as a single-column mobile survey so participants answer one question at a time.
 
 ## Performance Scope
 

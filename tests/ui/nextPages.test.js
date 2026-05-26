@@ -13,6 +13,14 @@ test("participant page uses the agreed offline vote form copy", () => {
   const source = readFileSync("src/components/event/EventClient.jsx", "utf8");
   assert.match(source, /initialEventData/);
   assert.match(source, /loading-spinner/);
+  assert.match(source, /participantScreenState/);
+  assert.match(source, /screenState === "vote"/);
+  assert.match(source, /screenState === "preparing"/);
+  assert.match(source, /screenState === "result"/);
+  assert.match(source, /vote-panel/);
+  assert.match(source, /vote-form/);
+  assert.match(source, /form-question/);
+  assert.match(source, /question-text/);
   assert.match(source, /성별/);
   assert.match(source, /본인 번호를 선택해주세요/);
   assert.match(source, /예시\) 김하늘/);
@@ -24,11 +32,13 @@ test("participant page uses the agreed offline vote form copy", () => {
   assert.match(source, /targetGenderText = vote\.gender === "male" \? "여성"/);
   assert.match(source, /분은 누구였나요\?/);
   assert.match(source, /\[선택\] 부부에게 하고 싶은 말/);
-  assert.match(source, /결과 확인/);
+  assert.match(source, /결과 정리 중/);
+  assert.match(source, /매칭 결과 확인/);
   assert.match(source, /canCheckResult/);
   assert.match(source, /연락처 보기/);
   assert.match(source, /result_expired|expired/);
   assert.doesNotMatch(source, /불러오는 중입니다/);
+  assert.doesNotMatch(source, /마감 및 계산/);
   assert.doesNotMatch(source, /플랫폼 닉네임/);
   assert.doesNotMatch(source, /선택 서술형/);
   assert.doesNotMatch(source, /reviewNote/);
@@ -37,6 +47,9 @@ test("participant page uses the agreed offline vote form copy", () => {
   assert.match(css, /::placeholder/);
   assert.match(css, /--placeholder/);
   assert.match(css, /@keyframes spin/);
+  assert.match(css, /\.vote-form/);
+  assert.match(css, /\.form-question/);
+  assert.match(css, /\.question-text/);
 });
 
 test("admin pages are React flows for login dashboard operations and member search", () => {
