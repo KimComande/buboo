@@ -1,0 +1,22 @@
+{
+  "name": "buboo-next",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "test": "node --test",
+    "db:check": "node scripts/check_supabase_connection.js",
+    "db:setup": "node scripts/setup_postgres_schema.js",
+    "db:migrate": "node scripts/migrate_json_to_postgres.js"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "next": "^16.2.6",
+    "pg": "^8.21.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  }
+}

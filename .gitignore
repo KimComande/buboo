@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+data/*.tmp
+_codex_runtime/
+__pycache__/
+*.pyc
