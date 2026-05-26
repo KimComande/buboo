@@ -53,3 +53,19 @@ test("admin pages are React flows for login dashboard operations and member sear
   assert.doesNotMatch(source, /계산 없음/);
   assert.doesNotMatch(source, /아직 계산 전/);
 });
+
+test("admin dashboard exposes mobile card labels for dense operational tables", () => {
+  const source = readFileSync("src/components/admin/AdminDashboardClient.jsx", "utf8");
+  assert.match(source, /mobile-card-table participant-table/);
+  assert.match(source, /mobile-card-table member-table/);
+  assert.match(source, /data-label="번호"/);
+  assert.match(source, /data-label="최신 제출"/);
+  assert.match(source, /data-label="프로필"/);
+  assert.match(source, /data-label="최고순위\/참여"/);
+  assert.match(source, /table-scroll-hint/);
+
+  const css = readFileSync("app/globals.css", "utf8");
+  assert.match(css, /\.mobile-card-table/);
+  assert.match(css, /td::before/);
+  assert.match(css, /content: attr\(data-label\)/);
+});

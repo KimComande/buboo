@@ -145,14 +145,14 @@ export default function AdminDashboardClient({ initialSlug }) {
         </TablePanel>
       </section>
 
-      <TablePanel title="참가자 및 제출 버전" columns={["번호", "상태", "최신 제출", "선택", "버전"]}>
+      <TablePanel title="참가자 및 제출 버전" columns={["번호", "상태", "최신 제출", "선택", "버전"]} tableClassName="mobile-card-table participant-table">
         {dashboard.participants.map((participant) => (
           <tr key={participant.id}>
-            <td><strong>{genderText(participant.gender)} {participant.seatNo}</strong></td>
-            <td>{participant.latestSubmission ? "제출" : "미제출"}</td>
-            <td>{participant.latestSubmission ? <>{participant.latestSubmission.name}<div className="small-text">{participant.latestSubmission.nickname} / {formatPhone(participant.latestSubmission.phone)}</div></> : "-"}</td>
-            <td>{participant.latestSubmission ? `${choiceText(dashboard, participant.latestSubmission.firstChoiceId)} / ${choiceText(dashboard, participant.latestSubmission.secondChoiceId)}` : "-"}</td>
-            <td>{participant.submissionVersions.map((submission) => <div className="small-text" key={submission.id}>{submissionVersionText(dashboard, submission)}</div>)}</td>
+            <td data-label="번호"><strong>{genderText(participant.gender)} {participant.seatNo}</strong></td>
+            <td data-label="상태">{participant.latestSubmission ? "제출" : "미제출"}</td>
+            <td data-label="최신 제출">{participant.latestSubmission ? <>{participant.latestSubmission.name}<div className="small-text">{participant.latestSubmission.nickname} / {formatPhone(participant.latestSubmission.phone)}</div></> : "-"}</td>
+            <td data-label="선택">{participant.latestSubmission ? `${choiceText(dashboard, participant.latestSubmission.firstChoiceId)} / ${choiceText(dashboard, participant.latestSubmission.secondChoiceId)}` : "-"}</td>
+            <td data-label="버전">{participant.submissionVersions.map((submission) => <div className="small-text" key={submission.id}>{submissionVersionText(dashboard, submission)}</div>)}</td>
           </tr>
         ))}
       </TablePanel>
@@ -242,7 +242,7 @@ function MemberTable({ dashboard, keyword, onSave }) {
 
   return (
     <div className="table-wrap">
-      <table>
+      <table className="mobile-card-table member-table">
         <thead>
           <tr>
             <th>이름</th>
@@ -280,12 +280,12 @@ function MemberRow({ member, onSave }) {
 
   return (
     <tr>
-      <td>
+      <td data-label="이름">
         <strong>{member.name}</strong>
         <div className="small-text">닉네임</div>
         <input value={form.nickname} onChange={(event) => update("nickname", event.target.value)} />
       </td>
-      <td>
+      <td data-label="프로필">
         <div className="profile-grid">
           <input placeholder="MBTI" value={form.mbti} onChange={(event) => update("mbti", event.target.value)} />
           <input placeholder="직업" value={form.job} onChange={(event) => update("job", event.target.value)} />
@@ -294,33 +294,34 @@ function MemberRow({ member, onSave }) {
           <input placeholder="이성에게 바라는 점" value={form.desiredPartner} onChange={(event) => update("desiredPartner", event.target.value)} />
         </div>
       </td>
-      <td>{formatPhone(member.phone)}<div className="small-text">{genderText(member.gender)}</div></td>
-      <td>
+      <td data-label="연락처">{formatPhone(member.phone)}<div className="small-text">{genderText(member.gender)}</div></td>
+      <td data-label="상태">
         <select value={form.status} onChange={(event) => update("status", event.target.value)}>
           <option value="normal">일반</option>
           <option value="poor_quality">저품질</option>
           <option value="blacklist">블랙리스트</option>
         </select>
       </td>
-      <td>
+      <td data-label="최고순위/참여">
         <strong>{bestRankText(member)}</strong>
         <div className="small-text">참여 {member.confirmedParticipationCount ?? member.participationCount ?? 0}회</div>
         <div className="small-text">호감률 {rateText(member.averagePopularityRate)} / 매칭률 {rateText(member.averageMatchRate ?? member.matchedEventRate)}</div>
       </td>
-      <td><input value={form.memo} onChange={(event) => update("memo", event.target.value)} /></td>
-      <td><button className="secondary-button" type="button" onClick={() => onSave(member.id, form)}>저장</button></td>
+      <td data-label="메모"><input value={form.memo} onChange={(event) => update("memo", event.target.value)} /></td>
+      <td data-label="저장"><button className="secondary-button" type="button" onClick={() => onSave(member.id, form)}>저장</button></td>
     </tr>
   );
 }
 
-function TablePanel({ title, columns, children }) {
+function TablePanel({ title, columns, children, tableClassName = "" }) {
   return (
     <section className="panel">
       <div className="section-head">
         <h2>{title}</h2>
       </div>
       <div className="table-wrap">
-        <table>
+        {!tableClassName ? <p className="table-scroll-hint">표가 넓으면 좌우로 밀어 확인하세요.</p> : null}
+        <table className={tableClassName}>
           <thead>
             <tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr>
           </thead>
