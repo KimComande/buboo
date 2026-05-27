@@ -6,18 +6,20 @@
   <title>부부 참가자 UI 추천 혼합안</title>
   <style>
     :root {
-      --bg: #f3f5f1;
+      --bg: #f5f7f4;
       --ink: #172026;
       --muted: #65717b;
-      --line: #d6dde2;
+      --line: #d7dee3;
       --paper: #ffffff;
       --field: #fbfcfd;
-      --teal: #08796f;
-      --plum: #8a3f66;
-      --amber: #a66518;
-      --soft-teal: #e8f4f2;
-      --soft-plum: #faf4f7;
-      --shadow: 0 20px 50px rgba(23, 32, 38, 0.16);
+      --brand-green: #0f6f63;
+      --brand-green-strong: #0a554d;
+      --romance: #a64267;
+      --romance-soft: #fff4f8;
+      --amber: #b56518;
+      --amber-soft: #fff3e6;
+      --focus: #2d7fba;
+      --shadow: 0 20px 50px rgba(23, 32, 38, 0.14);
     }
 
     * {
@@ -26,7 +28,9 @@
 
     body {
       margin: 0;
-      background: var(--bg);
+      background:
+        linear-gradient(180deg, rgba(15, 111, 99, 0.06), rgba(15, 111, 99, 0) 260px),
+        var(--bg);
       color: var(--ink);
       font-family: Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
       letter-spacing: 0;
@@ -59,7 +63,8 @@
     .preview-head p,
     .lead,
     .field-help,
-    .note {
+    .note,
+    .micro-copy {
       color: var(--muted);
       line-height: 1.55;
     }
@@ -109,6 +114,43 @@
       color: var(--ink);
     }
 
+    .tone-swatches {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .swatch {
+      display: grid;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .swatch::before {
+      content: "";
+      display: block;
+      height: 22px;
+      border-radius: 6px;
+    }
+
+    .swatch.green::before {
+      background: var(--brand-green);
+    }
+
+    .swatch.romance::before {
+      background: var(--romance);
+    }
+
+    .swatch.amber::before {
+      background: var(--amber);
+    }
+
     .phone-frame {
       width: min(100%, 390px);
       margin: 0 auto;
@@ -120,8 +162,9 @@
     }
 
     .phone-screen {
-      min-height: 860px;
+      min-height: 880px;
       padding: 18px;
+      background: #fbfcfa;
     }
 
     .topline {
@@ -130,10 +173,12 @@
       justify-content: space-between;
       gap: 12px;
       margin-bottom: 14px;
+      border-bottom: 1px solid rgba(215, 222, 227, 0.9);
+      padding-bottom: 14px;
     }
 
     .brand {
-      color: var(--teal);
+      color: var(--brand-green);
       font-size: 11px;
       font-weight: 900;
     }
@@ -150,8 +195,8 @@
       min-height: 28px;
       border-radius: 999px;
       padding: 5px 10px;
-      background: var(--soft-teal);
-      color: var(--teal);
+      background: #e8f4f2;
+      color: var(--brand-green);
       font-size: 12px;
       font-weight: 900;
       white-space: nowrap;
@@ -198,8 +243,8 @@
       display: grid;
       place-items: center;
       border-radius: 50%;
-      background: var(--soft-teal);
-      color: var(--teal);
+      background: #e8f4f2;
+      color: var(--brand-green);
       font-weight: 900;
       font-size: 13px;
     }
@@ -230,6 +275,19 @@
       font: inherit;
     }
 
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--focus);
+      box-shadow: 0 0 0 3px rgba(45, 127, 186, 0.14);
+      outline: none;
+    }
+
+    select:disabled {
+      background: #f0f3f5;
+      color: #98a3ab;
+    }
+
     textarea {
       min-height: 92px;
       resize: none;
@@ -242,11 +300,13 @@
     }
 
     .priority-section {
+      position: relative;
       display: grid;
       gap: 11px;
-      border: 2px solid #e3c6d5;
+      border: 1px solid #deb3c6;
+      border-left: 5px solid var(--romance);
       border-radius: 8px;
-      background: var(--soft-plum);
+      background: var(--romance-soft);
       padding: 15px;
       margin-top: 12px;
     }
@@ -265,7 +325,7 @@
 
     .priority-chip {
       border-radius: 999px;
-      background: #fff3e6;
+      background: var(--amber-soft);
       color: var(--amber);
       padding: 5px 9px;
       font-size: 12px;
@@ -275,16 +335,36 @@
 
     .rank-card {
       display: grid;
-      gap: 8px;
-      border: 1px solid #e3c6d5;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      border: 1px solid #e5c8d5;
       border-radius: 8px;
       background: var(--paper);
       padding: 12px;
     }
 
-    .rank-card strong {
-      color: var(--plum);
-      font-size: 13px;
+    .rank-badge {
+      width: 42px;
+      min-height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--romance);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1.15;
+      text-align: center;
+    }
+
+    .rank-body {
+      display: grid;
+      gap: 8px;
+    }
+
+    .micro-copy {
+      font-size: 12px;
     }
 
     .comment-section {
@@ -314,10 +394,14 @@
       min-height: 52px;
       border: 0;
       border-radius: 6px;
-      background: var(--teal);
+      background: var(--brand-green);
       color: #fff;
       font-size: 16px;
       font-weight: 900;
+    }
+
+    .sticky-submit button:active {
+      background: var(--brand-green-strong);
     }
 
     .sticky-submit p {
@@ -333,7 +417,7 @@
     }
 
     .back-link {
-      color: var(--teal);
+      color: var(--brand-green);
       font-weight: 900;
       text-decoration: none;
     }
@@ -364,17 +448,22 @@
   <main class="preview-shell" data-preview="recommended-hybrid">
     <header class="preview-head">
       <h1>추천 혼합안</h1>
-      <p>전체 흐름 + 호감 선택 강조. A의 익숙한 설문 흐름을 유지하고, C처럼 1순위/2순위 선택만 더 잘 보이게 만든 안입니다.</p>
+      <p>전체 흐름 + 호감 선택 강조. 익숙한 설문 흐름은 유지하고, 1순위/2순위 선택만 더 선명하게 만든 안입니다.</p>
     </header>
 
     <section class="preview-layout">
       <aside class="reason-panel">
-        <h2>실제 적용 후보</h2>
+        <h2>색감과 포인트 기준</h2>
         <ul class="reason-list">
-          <li><b>A에서 가져온 것:</b> 성별부터 메모까지 한 화면에서 전부 확인하는 익숙한 설문 구조.</li>
-          <li><b>C에서 가져온 것:</b> 실제 매칭에 중요한 1순위와 2순위 선택을 별도 강조 영역으로 분리.</li>
-          <li><b>운영 기준:</b> 참가자는 빠르게 제출하고, 운영자는 본인 정보와 호감 선택을 안정적으로 받는 방향.</li>
+          <li><b>초록:</b> 부부의 기본 신뢰감, 제출 버튼, 진행 상태에 사용합니다.</li>
+          <li><b>로즈:</b> 실제 매칭에 중요한 호감 선택 구역에만 씁니다.</li>
+          <li><b>앰버:</b> 핵심 문항 같은 작은 안내 포인트에만 씁니다.</li>
         </ul>
+        <div class="tone-swatches" aria-label="색상 기준">
+          <span class="swatch green">기본 신뢰</span>
+          <span class="swatch romance">호감 선택</span>
+          <span class="swatch amber">작은 강조</span>
+        </div>
         <p class="note"><a class="back-link" href="./participant-ui-options.html">3안 비교 페이지로 돌아가기</a></p>
       </aside>
 
@@ -397,14 +486,20 @@
                 <span class="num">1</span>
                 <div class="field-body">
                   <label for="r-gender">성별</label>
-                  <select id="r-gender"><option>선택</option><option>남자</option><option>여자</option></select>
+                  <select id="r-gender" data-role="gender">
+                    <option value="">선택</option>
+                    <option value="male">남자</option>
+                    <option value="female">여자</option>
+                  </select>
                 </div>
               </div>
               <div class="field-row">
                 <span class="num">2</span>
                 <div class="field-body">
                   <label for="r-seat">본인 번호를 선택해주세요</label>
-                  <select id="r-seat"><option>선택</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select>
+                  <select id="r-seat" data-role="own-seat" disabled>
+                    <option value="">성별을 먼저 선택해 주세요</option>
+                  </select>
                 </div>
               </div>
               <div class="field-row">
@@ -437,14 +532,23 @@
               <span class="priority-chip">핵심 2문항</span>
             </div>
             <div class="rank-card">
-              <strong>1순위</strong>
-              <label for="r-first">오늘의 1순위 이성분은 누구였나요?</label>
-              <select id="r-first"><option>선택</option><option>없음</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select>
+              <span class="rank-badge">1<br>순위</span>
+              <div class="rank-body">
+                <label for="r-first" data-target-gender-label data-rank="first">오늘의 1순위 이성분은 누구였나요?</label>
+                <select id="r-first" data-role="first-choice" disabled>
+                  <option value="">성별을 먼저 선택해 주세요</option>
+                </select>
+                <p class="micro-copy" data-target-seat-hint>성별 선택 후 상대 성별 번호가 표시됩니다.</p>
+              </div>
             </div>
             <div class="rank-card">
-              <strong>2순위</strong>
-              <label for="r-second">오늘의 2순위 이성분은 누구였나요?</label>
-              <select id="r-second"><option>선택</option><option>없음</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select>
+              <span class="rank-badge">2<br>순위</span>
+              <div class="rank-body">
+                <label for="r-second" data-target-gender-label data-rank="second">오늘의 2순위 이성분은 누구였나요?</label>
+                <select id="r-second" data-role="second-choice" disabled>
+                  <option value="">성별을 먼저 선택해 주세요</option>
+                </select>
+              </div>
             </div>
           </section>
 
@@ -461,5 +565,65 @@
       </div>
     </section>
   </main>
+
+  <script>
+    const genderSeatLabels = {
+      male: ["남자 1번", "남자 2번", "남자 3번", "남자 4번", "남자 5번"],
+      female: ["여자 1번", "여자 2번", "여자 3번", "여자 4번", "여자 5번"],
+    };
+    const genderSelect = document.querySelector('[data-role="gender"]');
+    const ownSeatSelect = document.querySelector('[data-role="own-seat"]');
+    const firstChoiceSelect = document.querySelector('[data-role="first-choice"]');
+    const secondChoiceSelect = document.querySelector('[data-role="second-choice"]');
+    const targetGenderLabels = document.querySelectorAll("[data-target-gender-label]");
+    const targetSeatHint = document.querySelector("[data-target-seat-hint]");
+
+    function optionHtml(value, label) {
+      return `<option value="${value}">${label}</option>`;
+    }
+
+    function buildSeatOptions(labels, includeNone) {
+      const base = includeNone ? optionHtml("none", "없음") : "";
+      return `${base}${labels.map((label, index) => optionHtml(String(index + 1), label)).join("")}`;
+    }
+
+    function updateGenderDependentFields() {
+      const gender = genderSelect.value;
+      const ownGender = gender === "male" ? "male" : gender === "female" ? "female" : "";
+      const targetGender = gender === "male" ? "female" : gender === "female" ? "male" : "";
+      const targetPrefix = gender === "male" ? "여자" : gender === "female" ? "남자" : "";
+      const targetPerson = gender === "male" ? "여성분" : gender === "female" ? "남성분" : "이성분";
+
+      if (!gender) {
+        ownSeatSelect.innerHTML = optionHtml("", "성별을 먼저 선택해 주세요");
+        firstChoiceSelect.innerHTML = optionHtml("", "성별을 먼저 선택해 주세요");
+        secondChoiceSelect.innerHTML = optionHtml("", "성별을 먼저 선택해 주세요");
+        ownSeatSelect.disabled = true;
+        firstChoiceSelect.disabled = true;
+        secondChoiceSelect.disabled = true;
+        targetGenderLabels.forEach((label) => {
+          const rankText = label.dataset.rank === "first" ? "1순위" : "2순위";
+          label.textContent = `오늘의 ${rankText} 이성분은 누구였나요?`;
+        });
+        targetSeatHint.textContent = "성별 선택 후 상대 성별 번호가 표시됩니다.";
+        return;
+      }
+
+      ownSeatSelect.disabled = false;
+      firstChoiceSelect.disabled = false;
+      secondChoiceSelect.disabled = false;
+      ownSeatSelect.innerHTML = optionHtml("", "선택") + buildSeatOptions(genderSeatLabels[ownGender], false);
+      firstChoiceSelect.innerHTML = optionHtml("", "선택") + buildSeatOptions(genderSeatLabels[targetGender], true);
+      secondChoiceSelect.innerHTML = optionHtml("", "선택") + buildSeatOptions(genderSeatLabels[targetGender], true);
+      targetGenderLabels.forEach((label) => {
+        const rankText = label.dataset.rank === "first" ? "1순위" : "2순위";
+        label.textContent = `오늘의 ${rankText} ${targetPerson}은 누구였나요?`;
+      });
+      targetSeatHint.textContent = `${targetPrefix} 1번부터 ${targetPrefix} 5번까지 선택할 수 있습니다.`;
+    }
+
+    genderSelect.addEventListener("change", updateGenderDependentFields);
+    updateGenderDependentFields();
+  </script>
 </body>
 </html>

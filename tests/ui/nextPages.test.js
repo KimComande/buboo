@@ -29,7 +29,13 @@ test("participant page uses the agreed offline vote form copy", () => {
   assert.match(source, /예시\) 제이/);
   assert.match(source, /오늘의 1순위/);
   assert.match(source, /오늘의 2순위/);
+  assert.match(source, /const ownCapacity = vote\.gender === "male" \? eventData\?\.maleCapacity : eventData\?\.femaleCapacity/);
+  assert.match(source, /const targetCapacity = vote\.gender === "male" \? eventData\?\.femaleCapacity : eventData\?\.maleCapacity/);
   assert.match(source, /targetGenderText = vote\.gender === "male" \? "여성"/);
+  assert.match(source, /targetSeatText = vote\.gender === "male" \? "여자"/);
+  assert.match(source, /if \(field === "gender"\)/);
+  assert.match(source, /next\.firstChoiceSeatNo = ""/);
+  assert.match(source, /next\.secondChoiceSeatNo = ""/);
   assert.match(source, /분은 누구였나요\?/);
   assert.match(source, /\[선택\] 부부에게 하고 싶은 말/);
   assert.match(source, /결과 정리 중/);

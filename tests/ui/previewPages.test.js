@@ -50,6 +50,19 @@ test("participant recommended preview combines full survey flow with emphasized 
   assert.match(source, /class="[^"]*identity-section/);
   assert.match(source, /class="[^"]*priority-section/);
   assert.match(source, /class="[^"]*sticky-submit/);
+  assert.match(source, /--brand-green: #0f6f63/);
+  assert.match(source, /--romance: #a64267/);
+  assert.match(source, /class="[^"]*rank-badge/);
+  assert.match(source, /data-role="gender"/);
+  assert.match(source, /data-role="own-seat"/);
+  assert.match(source, /data-role="first-choice"/);
+  assert.match(source, /data-role="second-choice"/);
+  assert.match(source, /data-target-gender-label/);
+  assert.match(source, /function updateGenderDependentFields/);
+  assert.match(source, /여성분/);
+  assert.match(source, /남성분/);
+  assert.match(source, /여자 1번/);
+  assert.match(source, /남자 1번/);
 
   for (const label of [
     "성별",
