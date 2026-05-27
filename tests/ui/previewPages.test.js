@@ -109,9 +109,15 @@ test("participant result preview demonstrates matched and no-match lookups", () 
   assert.doesNotMatch(source, /서로의 선택이 확인되어 매칭되었습니다/);
   assert.doesNotMatch(source, /서로의 선택이 확인되었습니다/);
   assert.doesNotMatch(source, /<p class="result-kicker">결과 있음<\/p>/);
-  assert.match(source, /아쉽게도 서로 연결되지 않았어요/);
-  assert.match(source, /참석해 주셔서 감사해요/);
-  assert.match(source, /좋은 인연을 만나기를 먼발치에서 응원하겠습니다/);
+  assert.match(source, /입력하신 정보로 호감 결과를 찾지 못했어요/);
+  assert.match(source, /다시 확인하시고 입력해주세요/);
+  assert.doesNotMatch(source, /확인 실패/);
+  assert.match(source, /아쉽게도 이번에는 서로의 마음이 닿지 않았어요/);
+  assert.match(source, /귀한 시간 내어 부부와 함께해 주셔서 진심으로 감사드립니다/);
+  assert.match(source, /앞으로 다가올 소중한 인연을 늘 응원하겠습니다/);
+  assert.doesNotMatch(source, /아쉽게도 서로 연결되지 않았어요/);
+  assert.doesNotMatch(source, /참석해 주셔서 감사해요/);
+  assert.doesNotMatch(source, /좋은 인연을 만나기를 먼발치에서 응원하겠습니다/);
   assert.match(source, /여자 2번/);
   assert.match(source, /연락처 보기/);
   assert.match(source, /010-2002-2002/);

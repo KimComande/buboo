@@ -278,9 +278,9 @@ function ResultView({ result, onReveal }) {
   if (!result.matches?.length) {
     return (
       <div className="result-box">
-        <p>아쉽게도 서로 연결되지 않았어요.</p>
-        <p>참석해 주셔서 감사해요.</p>
-        <p>앞으로도 좋은 인연을 만나기를 먼발치에서 응원하겠습니다.</p>
+        <p>아쉽게도 이번에는 서로의 마음이 닿지 않았어요.</p>
+        <p>귀한 시간 내어 부부와 함께해 주셔서 진심으로 감사드립니다.</p>
+        <p>앞으로 다가올 소중한 인연을 늘 응원하겠습니다.</p>
       </div>
     );
   }
@@ -346,7 +346,7 @@ function formatPhone(phone) {
 
 function errorText(code) {
   return ({
-    participant_auth_failed: "입력하신 정보로 제출 내역을 찾지 못했습니다. 이름과 연락처를 다시 확인해 주세요.",
+    participant_auth_failed: "입력하신 정보로 호감 결과를 찾지 못했어요. 다시 확인하시고 입력해주세요.",
     participant_auth_ambiguous: "동명이인 또는 연락처 뒤 4자리 중복 가능성이 있어 전체 연락처로 다시 확인해 주세요.",
     phone_required: "연락처를 입력해 주세요.",
     name_required: "이름을 입력해 주세요.",

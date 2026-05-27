@@ -477,9 +477,8 @@
       if (!result) {
         resultArea.innerHTML = `
           <article class="no-match-result">
-            <p class="result-kicker">확인 실패</p>
-            <h3>입력하신 정보로 결과를 찾지 못했어요.</h3>
-            <p class="result-copy">테스트용으로는 김 / 1234 또는 이 / 1123을 입력해 주세요.</p>
+            <h3>입력하신 정보로 호감 결과를 찾지 못했어요.</h3>
+            <p class="result-copy">다시 확인하시고 입력해주세요.</p>
           </article>
         `;
         return;
@@ -488,8 +487,8 @@
       if (result.status === "none") {
         resultArea.innerHTML = `
           <article class="no-match-result">
-            <h3>아쉽게도 서로 연결되지 않았어요.</h3>
-            <p class="result-copy">참석해 주셔서 감사해요.<br>앞으로도 좋은 인연을 만나기를 먼발치에서 응원하겠습니다.</p>
+            <h3>아쉽게도 이번에는 서로의 마음이 닿지 않았어요.</h3>
+            <p class="result-copy">귀한 시간 내어 부부와 함께해 주셔서 진심으로 감사드립니다.<br>앞으로 다가올 소중한 인연을 늘 응원하겠습니다.</p>
           </article>
         `;
         return;
