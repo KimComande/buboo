@@ -98,14 +98,20 @@ test("participant result preview demonstrates matched and no-match lookups", () 
   assert.match(source, /김 \/ 1234/);
   assert.match(source, /이 \/ 1123/);
   assert.match(source, /결과 있음/);
-  assert.match(source, /결과 없음/);
+  assert.match(source, /연결 없음/);
   assert.match(source, /data-sample="matched"/);
   assert.match(source, /data-sample="none"/);
   assert.match(source, /function lookupDemoResult/);
   assert.match(source, /class="[^"]*matched-result/);
   assert.match(source, /class="[^"]*no-match-result/);
+  assert.match(source, /아쉽게도 서로 연결되지 않았어요/);
+  assert.match(source, /참석해 주셔서 감사해요/);
+  assert.match(source, /좋은 인연을 만나기를 먼발치에서 응원하겠습니다/);
+  assert.match(source, /여자 2번/);
   assert.match(source, /연락처 보기/);
   assert.match(source, /010-2002-2002/);
+  assert.doesNotMatch(source, /이서연|서연/);
+  assert.doesNotMatch(source, /<p class="result-kicker">결과 없음<\/p>/);
   assert.doesNotMatch(source, /DATABASE_URL|ADMIN_PASSWORD|local-admin/);
 });
 

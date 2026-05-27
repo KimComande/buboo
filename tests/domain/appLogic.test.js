@@ -209,6 +209,20 @@ test("participant result does not expose internal match rank details", () => {
   assert.equal(result.matches[0].femaleChoiceRank, undefined);
 });
 
+test("participant result keeps matched participant names private", () => {
+  const db = createDemoData();
+  const result = getParticipantResult(db, "demo", {
+    name: "김도윤",
+    phone: "1001",
+  }, { now: "2026-05-09T14:00:00.000Z" });
+
+  assert.equal(result.matches.length, 1);
+  assert.equal(result.matches[0].target.gender, "female");
+  assert.equal(result.matches[0].target.seatNo, 2);
+  assert.equal(result.matches[0].target.name, undefined);
+  assert.equal(result.matches[0].target.nickname, undefined);
+});
+
 test("last four digit authentication rejects ambiguous same-name candidates", () => {
   const db = createSeedData({ slug: "demo", maleCapacity: 2, femaleCapacity: 1 });
 
@@ -654,6 +668,8 @@ test("released result exposes contact only through matched-party contact view", 
   assert.equal(result.status, "released");
   assert.equal(result.matches.length, 1);
   assert.equal(result.matches[0].target.phone, undefined);
+  assert.equal(result.matches[0].target.name, undefined);
+  assert.equal(result.matches[0].target.nickname, undefined);
 
   const contact = viewContact(db, "demo", {
     name: "Male One",
@@ -665,6 +681,8 @@ test("released result exposes contact only through matched-party contact view", 
   }, { now: "2026-05-21T14:00:00.000Z" });
 
   assert.equal(contact.target.phone, "01022222222");
+  assert.equal(contact.target.name, undefined);
+  assert.equal(contact.target.nickname, undefined);
   assert.equal(db.contactViewLogs.length, 1);
 
   assert.throws(() => viewContact(db, "demo", {

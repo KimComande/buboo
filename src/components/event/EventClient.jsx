@@ -278,7 +278,9 @@ function ResultView({ result, onReveal }) {
   if (!result.matches?.length) {
     return (
       <div className="result-box">
-        오늘은 서로 연결된 호감이 확인되지 않았어요. 참여해 주셔서 감사합니다.
+        <p>아쉽게도 서로 연결되지 않았어요.</p>
+        <p>참석해 주셔서 감사해요.</p>
+        <p>앞으로도 좋은 인연을 만나기를 먼발치에서 응원하겠습니다.</p>
       </div>
     );
   }
@@ -288,7 +290,7 @@ function ResultView({ result, onReveal }) {
       {result.matches.map((match) => (
         <article className="result-box" key={match.id}>
           <h3>매칭되었습니다</h3>
-          <p>{genderText(match.target.gender)} {match.target.seatNo}번 {match.target.name} {match.target.nickname ? `(${match.target.nickname})` : ""}</p>
+          <p>{genderText(match.target.gender)} {match.target.seatNo}번</p>
           {match.revealedPhone ? (
             <p className="contact-value">{formatPhone(match.revealedPhone)}</p>
           ) : (

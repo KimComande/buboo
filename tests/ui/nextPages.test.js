@@ -42,6 +42,13 @@ test("participant page uses the agreed offline vote form copy", () => {
   assert.match(source, /매칭 결과 확인/);
   assert.match(source, /canCheckResult/);
   assert.match(source, /연락처 보기/);
+  assert.match(source, /genderText\(match\.target\.gender\)} {match\.target\.seatNo}번/);
+  assert.doesNotMatch(source, /match\.target\.name/);
+  assert.doesNotMatch(source, /match\.target\.nickname/);
+  assert.match(source, /아쉽게도 서로 연결되지 않았어요/);
+  assert.match(source, /참석해 주셔서 감사해요/);
+  assert.match(source, /좋은 인연을 만나기를 먼발치에서 응원하겠습니다/);
+  assert.doesNotMatch(source, /오늘은 서로 연결된 호감이 확인되지 않았어요/);
   assert.match(source, /result_expired|expired/);
   assert.doesNotMatch(source, /불러오는 중입니다/);
   assert.doesNotMatch(source, /마감 및 계산/);

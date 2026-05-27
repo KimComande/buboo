@@ -217,7 +217,7 @@ export function getParticipantResult(db, slug, auth, { now = new Date().toISOStr
         : match.maleParticipantId;
       return {
         id: match.id,
-        target: publicParticipantProfile(db, targetParticipantId),
+        target: publicParticipantSeatProfile(db, targetParticipantId),
       };
     });
 
@@ -500,6 +500,15 @@ function authenticateParticipant(db, eventId, { name, phone }) {
   return participant;
 }
 
+function publicParticipantSeatProfile(db, participantId) {
+  const participant = db.eventParticipants.find((item) => item.id === participantId);
+  return {
+    participantId,
+    gender: participant?.gender ?? "",
+    seatNo: participant?.seatNo ?? null,
+  };
+}
+
 function publicParticipantProfile(db, participantId) {
   const participant = db.eventParticipants.find((item) => item.id === participantId);
   const submission = participant?.latestSubmissionId
@@ -515,7 +524,7 @@ function publicParticipantProfile(db, participantId) {
 }
 
 function privateParticipantProfile(db, participantId) {
-  const profile = publicParticipantProfile(db, participantId);
+  const profile = publicParticipantSeatProfile(db, participantId);
   const participant = db.eventParticipants.find((item) => item.id === participantId);
   const submission = participant?.latestSubmissionId
     ? db.surveySubmissions.find((item) => item.id === participant.latestSubmissionId)

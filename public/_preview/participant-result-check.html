@@ -396,7 +396,7 @@
         <h2>테스트 계정</h2>
         <ul class="sample-list">
           <li><span><b>김 / 1234</b><br><span class="sample-note">매칭 결과 카드와 연락처 보기 버튼이 표시됩니다.</span></span><span class="status-tag good">결과 있음</span></li>
-          <li><span><b>이 / 1123</b><br><span class="sample-note">결과 없음 안내가 표시됩니다.</span></span><span class="status-tag none">결과 없음</span></li>
+          <li><span><b>이 / 1123</b><br><span class="sample-note">아쉬운 결과 안내가 표시됩니다.</span></span><span class="status-tag none">연결 없음</span></li>
         </ul>
       </aside>
 
@@ -449,8 +449,6 @@
         participant: "김",
         target: {
           label: "여자 2번",
-          name: "이서연",
-          nickname: "서연",
           phone: "010-2002-2002",
         },
         summary: "서로의 선택이 확인되어 매칭되었습니다.",
@@ -490,9 +488,8 @@
       if (result.status === "none") {
         resultArea.innerHTML = `
           <article class="no-match-result">
-            <p class="result-kicker">결과 없음</p>
-            <h3>오늘은 서로 연결된 호감이 확인되지 않았어요.</h3>
-            <p class="result-copy">참여해 주셔서 감사합니다. 다음 모임에서 더 좋은 인연을 만날 수 있도록 준비하겠습니다.</p>
+            <h3>아쉽게도 서로 연결되지 않았어요.</h3>
+            <p class="result-copy">참석해 주셔서 감사해요.<br>앞으로도 좋은 인연을 만나기를 먼발치에서 응원하겠습니다.</p>
           </article>
         `;
         return;
@@ -504,8 +501,8 @@
           <h3>매칭되었습니다.</h3>
           <p class="result-copy">${result.summary}</p>
           <div class="match-person">
-            <span class="meta-line">${result.target.label}</span>
-            <strong>${result.target.name} ${result.target.nickname ? `(${result.target.nickname})` : ""}</strong>
+            <strong>${result.target.label}</strong>
+            <span class="meta-line">서로의 선택이 확인되었습니다.</span>
           </div>
           <button class="secondary-button" type="button" data-action="reveal-contact">연락처 보기</button>
           <div class="contact-box" data-contact-box>${result.target.phone}</div>
