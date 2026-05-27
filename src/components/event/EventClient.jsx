@@ -235,8 +235,8 @@ export default function EventClient({ slug, initialEventData = null }) {
       {canCheckResult ? (
         <section className="panel">
           <div className="section-head">
-            <h2>매칭 결과 확인</h2>
-            <p>이름과 연락처를 입력하면 매칭 결과를 확인할 수 있습니다.</p>
+            <h2>이름과 연락처로 결과를 확인해 주세요.</h2>
+            <p>연락처는 전체 번호 또는 뒤 4자리로 확인할 수 있어요.</p>
           </div>
           <form className="form-grid compact" onSubmit={lookupResult}>
             <label>
@@ -279,8 +279,8 @@ function ResultView({ result, onReveal }) {
     return (
       <div className="result-box">
         <p>아쉽게도 이번에는 서로의 마음이 닿지 않았어요.</p>
-        <p>귀한 시간 내어 부부와 함께해 주셔서 진심으로 감사드립니다.</p>
-        <p>앞으로 다가올 소중한 인연을 늘 응원하겠습니다.</p>
+        <p>귀한 시간 내어 부부와 함께해 주셔서 진심으로 감사드려요.</p>
+        <p>앞으로 다가올 소중한 인연을 늘 응원할게요.</p>
       </div>
     );
   }
@@ -289,8 +289,8 @@ function ResultView({ result, onReveal }) {
     <div className="result-list">
       {result.matches.map((match) => (
         <article className="result-box" key={match.id}>
-          <h3>두 분의 마음이 닿았어요.❤</h3>
-          <p>서로를 향한 따뜻한 선택이 확인되어 매칭되었어요.</p>
+          <h3>두 분의 마음이 닿았어요. ❤</h3>
+          <p>서로를 향한 따뜻한 호감이 확인되어 매칭되었어요.</p>
           <p>{genderText(match.target.gender)} {match.target.seatNo}번</p>
           {match.revealedPhone ? (
             <p className="contact-value">{formatPhone(match.revealedPhone)}</p>
@@ -346,7 +346,7 @@ function formatPhone(phone) {
 
 function errorText(code) {
   return ({
-    participant_auth_failed: "입력하신 정보로 호감 결과를 찾지 못했어요. 다시 확인하시고 입력해주세요.",
+    participant_auth_failed: "입력해 주신 정보와 일치하는 결과를 찾지 못했어요. 정보가 정확한지 다시 한번 확인해 주세요.",
     participant_auth_ambiguous: "동명이인 또는 연락처 뒤 4자리 중복 가능성이 있어 전체 연락처로 다시 확인해 주세요.",
     phone_required: "연락처를 입력해 주세요.",
     name_required: "이름을 입력해 주세요.",
