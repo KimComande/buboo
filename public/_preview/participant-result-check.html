@@ -395,7 +395,7 @@
       <aside class="guide-panel">
         <h2>테스트 계정</h2>
         <ul class="sample-list">
-          <li><span><b>김 / 1234</b><br><span class="sample-note">매칭 결과 카드와 연락처 보기 버튼이 표시됩니다.</span></span><span class="status-tag good">결과 있음</span></li>
+          <li><span><b>김 / 1234</b><br><span class="sample-note">매칭 카드와 연락처 보기 버튼이 표시됩니다.</span></span><span class="status-tag good">매칭</span></li>
           <li><span><b>이 / 1123</b><br><span class="sample-note">아쉬운 결과 안내가 표시됩니다.</span></span><span class="status-tag none">연결 없음</span></li>
         </ul>
       </aside>
@@ -451,7 +451,7 @@
           label: "여자 2번",
           phone: "010-2002-2002",
         },
-        summary: "서로의 선택이 확인되어 매칭되었습니다.",
+        summary: "서로를 향한 따뜻한 선택이 확인되어 매칭되었어요.",
       },
       "이|1123": {
         status: "none",
@@ -497,12 +497,10 @@
 
       resultArea.innerHTML = `
         <article class="matched-result">
-          <p class="result-kicker">결과 있음</p>
-          <h3>매칭되었습니다.</h3>
+          <h3>두 분의 마음이 닿았어요.❤</h3>
           <p class="result-copy">${result.summary}</p>
           <div class="match-person">
             <strong>${result.target.label}</strong>
-            <span class="meta-line">서로의 선택이 확인되었습니다.</span>
           </div>
           <button class="secondary-button" type="button" data-action="reveal-contact">연락처 보기</button>
           <div class="contact-box" data-contact-box>${result.target.phone}</div>

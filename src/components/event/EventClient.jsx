@@ -289,7 +289,8 @@ function ResultView({ result, onReveal }) {
     <div className="result-list">
       {result.matches.map((match) => (
         <article className="result-box" key={match.id}>
-          <h3>매칭되었습니다</h3>
+          <h3>두 분의 마음이 닿았어요.❤</h3>
+          <p>서로를 향한 따뜻한 선택이 확인되어 매칭되었어요.</p>
           <p>{genderText(match.target.gender)} {match.target.seatNo}번</p>
           {match.revealedPhone ? (
             <p className="contact-value">{formatPhone(match.revealedPhone)}</p>
