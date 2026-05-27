@@ -50,6 +50,11 @@ test("participant recommended preview combines full survey flow with emphasized 
   assert.match(source, /class="[^"]*identity-section/);
   assert.match(source, /class="[^"]*priority-section/);
   assert.match(source, /class="[^"]*sticky-submit/);
+  assert.match(source, /--canvas: #f7f8fb/);
+  assert.match(source, /--wash-mint: #e8f7f2/);
+  assert.match(source, /--wash-blush: #fff1f5/);
+  assert.match(source, /--glass: rgba\(255, 255, 255, 0\.78\)/);
+  assert.match(source, /backdrop-filter: blur\(18px\)/);
   assert.match(source, /--brand-green: #0f6f63/);
   assert.match(source, /--romance: #a64267/);
   assert.match(source, /class="[^"]*rank-badge/);

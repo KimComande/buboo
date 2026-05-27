@@ -6,12 +6,17 @@
   <title>부부 참가자 UI 추천 혼합안</title>
   <style>
     :root {
-      --bg: #f5f7f4;
+      --canvas: #f7f8fb;
+      --wash-mint: #e8f7f2;
+      --wash-blush: #fff1f5;
+      --wash-sky: #eef6ff;
       --ink: #172026;
       --muted: #65717b;
-      --line: #d7dee3;
+      --line: rgba(198, 209, 218, 0.78);
       --paper: #ffffff;
-      --field: #fbfcfd;
+      --glass: rgba(255, 255, 255, 0.78);
+      --glass-strong: rgba(255, 255, 255, 0.92);
+      --field: rgba(255, 255, 255, 0.9);
       --brand-green: #0f6f63;
       --brand-green-strong: #0a554d;
       --romance: #a64267;
@@ -19,7 +24,8 @@
       --amber: #b56518;
       --amber-soft: #fff3e6;
       --focus: #2d7fba;
-      --shadow: 0 20px 50px rgba(23, 32, 38, 0.14);
+      --shadow: 0 24px 60px rgba(34, 48, 62, 0.13);
+      --soft-shadow: 0 12px 34px rgba(34, 48, 62, 0.09);
     }
 
     * {
@@ -29,8 +35,7 @@
     body {
       margin: 0;
       background:
-        linear-gradient(180deg, rgba(15, 111, 99, 0.06), rgba(15, 111, 99, 0) 260px),
-        var(--bg);
+        linear-gradient(135deg, var(--wash-mint) 0%, var(--canvas) 34%, var(--wash-blush) 68%, var(--wash-sky) 100%);
       color: var(--ink);
       font-family: Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
       letter-spacing: 0;
@@ -81,7 +86,9 @@
       gap: 14px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: var(--paper);
+      background: var(--glass);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--soft-shadow);
       padding: 20px;
     }
 
@@ -126,6 +133,7 @@
       gap: 6px;
       border: 1px solid var(--line);
       border-radius: 8px;
+      background: rgba(255, 255, 255, 0.46);
       padding: 9px;
       color: var(--muted);
       font-size: 12px;
@@ -156,7 +164,7 @@
       margin: 0 auto;
       border: 1px solid #c9d4dc;
       border-radius: 28px;
-      background: #f9fbfa;
+      background: rgba(255, 255, 255, 0.54);
       box-shadow: var(--shadow);
       overflow: hidden;
     }
@@ -164,7 +172,9 @@
     .phone-screen {
       min-height: 880px;
       padding: 18px;
-      background: #fbfcfa;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(248, 250, 252, 0.92)),
+        var(--canvas);
     }
 
     .topline {
@@ -203,9 +213,10 @@
     }
 
     .panel {
-      background: var(--paper);
+      background: var(--glass-strong);
       border: 1px solid var(--line);
       border-radius: 8px;
+      box-shadow: var(--soft-shadow);
       padding: 16px;
     }
 
@@ -306,7 +317,9 @@
       border: 1px solid #deb3c6;
       border-left: 5px solid var(--romance);
       border-radius: 8px;
-      background: var(--romance-soft);
+      background:
+        linear-gradient(135deg, rgba(255, 244, 248, 0.96), rgba(255, 255, 255, 0.78));
+      box-shadow: var(--soft-shadow);
       padding: 15px;
       margin-top: 12px;
     }
@@ -340,7 +353,7 @@
       align-items: start;
       border: 1px solid #e5c8d5;
       border-radius: 8px;
-      background: var(--paper);
+      background: rgba(255, 255, 255, 0.9);
       padding: 12px;
     }
 
@@ -372,7 +385,8 @@
       gap: 8px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: var(--paper);
+      background: var(--glass-strong);
+      box-shadow: var(--soft-shadow);
       padding: 15px;
       margin-top: 12px;
     }
@@ -385,8 +399,8 @@
       margin: 12px -18px -18px;
       padding: 12px 18px 18px;
       border-top: 1px solid var(--line);
-      background: rgba(249, 251, 250, 0.95);
-      backdrop-filter: blur(8px);
+      background: rgba(247, 248, 251, 0.82);
+      backdrop-filter: blur(18px);
     }
 
     .sticky-submit button {
