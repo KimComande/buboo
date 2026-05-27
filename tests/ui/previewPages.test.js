@@ -88,6 +88,27 @@ test("participant recommended preview combines full survey flow with emphasized 
   assert.doesNotMatch(source, /DATABASE_URL|ADMIN_PASSWORD|local-admin/);
 });
 
+test("participant result preview demonstrates matched and no-match lookups", () => {
+  const filePath = "public/_preview/participant-result-check.html";
+  assert.equal(existsSync(filePath), true);
+
+  const source = readFileSync(filePath, "utf8");
+  assert.match(source, /매칭 결과 확인 미리보기/);
+  assert.match(source, /data-preview="participant-result-demo"/);
+  assert.match(source, /김 \/ 1234/);
+  assert.match(source, /이 \/ 1123/);
+  assert.match(source, /결과 있음/);
+  assert.match(source, /결과 없음/);
+  assert.match(source, /data-sample="matched"/);
+  assert.match(source, /data-sample="none"/);
+  assert.match(source, /function lookupDemoResult/);
+  assert.match(source, /class="[^"]*matched-result/);
+  assert.match(source, /class="[^"]*no-match-result/);
+  assert.match(source, /연락처 보기/);
+  assert.match(source, /010-2002-2002/);
+  assert.doesNotMatch(source, /DATABASE_URL|ADMIN_PASSWORD|local-admin/);
+});
+
 function countText(source, text) {
   return source.split(text).length - 1;
 }

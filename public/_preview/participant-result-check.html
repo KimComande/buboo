@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>부부 매칭 결과 확인 미리보기</title>
+  <style>
+    :root {
+      --canvas: #f7f8fb;
+      --wash-mint: #e8f7f2;
+      --wash-blush: #fff1f5;
+      --wash-sky: #eef6ff;
+      --ink: #172026;
+      --muted: #65717b;
+      --line: rgba(198, 209, 218, 0.78);
+      --paper: #ffffff;
+      --glass: rgba(255, 255, 255, 0.78);
+      --glass-strong: rgba(255, 255, 255, 0.93);
+      --field: rgba(255, 255, 255, 0.9);
+      --brand-green: #0f6f63;
+      --brand-green-strong: #0a554d;
+      --romance: #a64267;
+      --romance-soft: #fff4f8;
+      --amber: #b56518;
+      --amber-soft: #fff3e6;
+      --focus: #2d7fba;
+      --shadow: 0 24px 60px rgba(34, 48, 62, 0.13);
+      --soft-shadow: 0 12px 34px rgba(34, 48, 62, 0.09);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--wash-mint) 0%, var(--canvas) 34%, var(--wash-blush) 68%, var(--wash-sky) 100%);
+      color: var(--ink);
+      font-family: Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      letter-spacing: 0;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .preview-shell {
+      width: min(1040px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 42px;
+    }
+
+    .preview-head {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 30px;
+      line-height: 1.16;
+    }
+
+    .preview-head p,
+    .lead,
+    .help,
+    .sample-note,
+    .result-copy,
+    .meta-line {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .preview-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(330px, 410px);
+      gap: 26px;
+      align-items: start;
+    }
+
+    .guide-panel,
+    .phone-frame {
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .guide-panel {
+      display: grid;
+      gap: 14px;
+      border-radius: 8px;
+      background: var(--glass);
+      backdrop-filter: blur(18px);
+      padding: 20px;
+    }
+
+    .guide-panel h2 {
+      font-size: 20px;
+      line-height: 1.3;
+    }
+
+    .sample-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .sample-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .sample-list li:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .sample-list b {
+      color: var(--ink);
+    }
+
+    .status-tag {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .status-tag.good {
+      background: #e8f4f2;
+      color: var(--brand-green);
+    }
+
+    .status-tag.none {
+      background: #eef2f6;
+      color: #53616d;
+    }
+
+    .phone-frame {
+      width: min(100%, 390px);
+      margin: 0 auto;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.54);
+      overflow: hidden;
+    }
+
+    .phone-screen {
+      min-height: 780px;
+      padding: 18px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(248, 250, 252, 0.92)),
+        var(--canvas);
+    }
+
+    .topline {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(215, 222, 227, 0.9);
+      padding-bottom: 14px;
+    }
+
+    .brand {
+      color: var(--brand-green);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .title {
+      margin-top: 4px;
+      font-size: 24px;
+      line-height: 1.15;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: #e8f4f2;
+      color: var(--brand-green);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .panel {
+      display: grid;
+      gap: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--glass-strong);
+      box-shadow: var(--soft-shadow);
+      padding: 16px;
+    }
+
+    .panel h2 {
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .result-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.42;
+    }
+
+    input {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--field);
+      color: var(--ink);
+      padding: 10px 11px;
+    }
+
+    input:focus {
+      border-color: var(--focus);
+      box-shadow: 0 0 0 3px rgba(45, 127, 186, 0.14);
+      outline: none;
+    }
+
+    input::placeholder {
+      color: #98a3ab;
+      opacity: 1;
+    }
+
+    .sample-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .sample-button,
+    .secondary-button {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--ink);
+      font-weight: 900;
+    }
+
+    .primary-button {
+      width: 100%;
+      min-height: 52px;
+      border: 0;
+      border-radius: 6px;
+      background: var(--brand-green);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .primary-button:active {
+      background: var(--brand-green-strong);
+    }
+
+    .result-area {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .empty-result {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.56);
+      padding: 15px;
+      color: var(--muted);
+      line-height: 1.55;
+      text-align: center;
+    }
+
+    .matched-result,
+    .no-match-result {
+      display: grid;
+      gap: 12px;
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .matched-result {
+      border: 1px solid #deb3c6;
+      border-left: 5px solid var(--romance);
+      background: linear-gradient(135deg, rgba(255, 244, 248, 0.96), rgba(255, 255, 255, 0.78));
+    }
+
+    .no-match-result {
+      border: 1px solid var(--line);
+      border-left: 5px solid #7b8792;
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    .result-kicker {
+      color: var(--romance);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .no-match-result .result-kicker {
+      color: #5f6b76;
+    }
+
+    .match-person {
+      display: grid;
+      gap: 4px;
+      border: 1px solid #e5c8d5;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.86);
+      padding: 12px;
+    }
+
+    .match-person strong {
+      font-size: 18px;
+    }
+
+    .contact-box {
+      display: none;
+      border-radius: 8px;
+      background: #e8f4f2;
+      color: var(--brand-green);
+      font-size: 17px;
+      font-weight: 900;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .contact-box.is-visible {
+      display: block;
+    }
+
+    .meta-line {
+      font-size: 12px;
+    }
+
+    @media (max-width: 860px) {
+      .preview-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .guide-panel {
+        order: 2;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .phone-screen {
+        padding: 14px;
+      }
+
+      .sample-buttons {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="preview-shell" data-preview="participant-result-demo">
+    <header class="preview-head">
+      <h1>매칭 결과 확인 미리보기</h1>
+      <p>실제 DB와 연결하지 않은 더미 화면입니다. 결과 공개 후 참가자가 이름과 연락처로 확인하는 흐름만 볼 수 있습니다.</p>
+    </header>
+
+    <section class="preview-layout">
+      <aside class="guide-panel">
+        <h2>테스트 계정</h2>
+        <ul class="sample-list">
+          <li><span><b>김 / 1234</b><br><span class="sample-note">매칭 결과 카드와 연락처 보기 버튼이 표시됩니다.</span></span><span class="status-tag good">결과 있음</span></li>
+          <li><span><b>이 / 1123</b><br><span class="sample-note">결과 없음 안내가 표시됩니다.</span></span><span class="status-tag none">결과 없음</span></li>
+        </ul>
+      </aside>
+
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="topline">
+            <div>
+              <p class="brand">부부, 호기심에서 결혼까지</p>
+              <h2 class="title">매칭 결과 확인</h2>
+            </div>
+            <span class="pill">결과 공개</span>
+          </div>
+
+          <section class="panel">
+            <div>
+              <h2>이름과 연락처로 결과를 확인해 주세요.</h2>
+              <p class="lead">연락처는 전체 번호 또는 뒤 4자리로 확인할 수 있습니다.</p>
+            </div>
+
+            <div class="sample-buttons">
+              <button class="sample-button" type="button" data-sample="matched">김 / 1234</button>
+              <button class="sample-button" type="button" data-sample="none">이 / 1123</button>
+            </div>
+
+            <form class="result-form">
+              <label>
+                이름
+                <input id="result-name" autocomplete="name" placeholder="예시) 김">
+              </label>
+              <label>
+                연락처
+                <input id="result-phone" inputmode="tel" autocomplete="tel" placeholder="예시) 1234">
+              </label>
+              <button class="primary-button" type="submit">결과 보기</button>
+            </form>
+          </section>
+
+          <section class="result-area" id="result-area" aria-live="polite">
+            <div class="empty-result">테스트 계정을 누르거나 직접 입력하면 결과 화면이 표시됩니다.</div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const DEMO_RESULTS = {
+      "김|1234": {
+        status: "matched",
+        participant: "김",
+        target: {
+          label: "여자 2번",
+          name: "이서연",
+          nickname: "서연",
+          phone: "010-2002-2002",
+        },
+        summary: "서로의 선택이 확인되어 매칭되었습니다.",
+      },
+      "이|1123": {
+        status: "none",
+        participant: "이",
+      },
+    };
+
+    const form = document.querySelector(".result-form");
+    const nameInput = document.querySelector("#result-name");
+    const phoneInput = document.querySelector("#result-phone");
+    const resultArea = document.querySelector("#result-area");
+    const sampleButtons = document.querySelectorAll("[data-sample]");
+
+    function normalizedPhone(value) {
+      return String(value || "").replace(/\D/g, "").slice(-4);
+    }
+
+    function lookupDemoResult(name, phone) {
+      return DEMO_RESULTS[`${String(name || "").trim()}|${normalizedPhone(phone)}`] || null;
+    }
+
+    function renderResult(result) {
+      if (!result) {
+        resultArea.innerHTML = `
+          <article class="no-match-result">
+            <p class="result-kicker">확인 실패</p>
+            <h3>입력하신 정보로 결과를 찾지 못했어요.</h3>
+            <p class="result-copy">테스트용으로는 김 / 1234 또는 이 / 1123을 입력해 주세요.</p>
+          </article>
+        `;
+        return;
+      }
+
+      if (result.status === "none") {
+        resultArea.innerHTML = `
+          <article class="no-match-result">
+            <p class="result-kicker">결과 없음</p>
+            <h3>오늘은 서로 연결된 호감이 확인되지 않았어요.</h3>
+            <p class="result-copy">참여해 주셔서 감사합니다. 다음 모임에서 더 좋은 인연을 만날 수 있도록 준비하겠습니다.</p>
+          </article>
+        `;
+        return;
+      }
+
+      resultArea.innerHTML = `
+        <article class="matched-result">
+          <p class="result-kicker">결과 있음</p>
+          <h3>매칭되었습니다.</h3>
+          <p class="result-copy">${result.summary}</p>
+          <div class="match-person">
+            <span class="meta-line">${result.target.label}</span>
+            <strong>${result.target.name} ${result.target.nickname ? `(${result.target.nickname})` : ""}</strong>
+          </div>
+          <button class="secondary-button" type="button" data-action="reveal-contact">연락처 보기</button>
+          <div class="contact-box" data-contact-box>${result.target.phone}</div>
+        </article>
+      `;
+
+      resultArea.querySelector("[data-action='reveal-contact']").addEventListener("click", () => {
+        resultArea.querySelector("[data-contact-box]").classList.add("is-visible");
+      });
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      renderResult(lookupDemoResult(nameInput.value, phoneInput.value));
+    });
+
+    sampleButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.sample === "matched") {
+          nameInput.value = "김";
+          phoneInput.value = "1234";
+        } else {
+          nameInput.value = "이";
+          phoneInput.value = "1123";
+        }
+        renderResult(lookupDemoResult(nameInput.value, phoneInput.value));
+      });
+    });
+  </script>
+</body>
+</html>
