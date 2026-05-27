@@ -6,16 +6,16 @@
   <title>부부 참가자 UI 옵션</title>
   <style>
     :root {
-      --bg: #f5f6f2;
+      --bg: #f4f5f1;
       --ink: #172026;
-      --muted: #697681;
-      --line: #d9e0e5;
+      --muted: #66727d;
+      --line: #d7dee3;
       --paper: #ffffff;
-      --soft: #f0f4f7;
-      --teal: #0f766e;
-      --teal-dark: #115e59;
-      --blue: #2f5b86;
-      --rose: #b7476b;
+      --field: #fbfcfd;
+      --teal: #08796f;
+      --blue: #2d5f92;
+      --plum: #8a3f66;
+      --amber: #a66518;
       --shadow: 0 18px 42px rgba(23, 32, 38, 0.14);
     }
 
@@ -31,8 +31,15 @@
       letter-spacing: 0;
     }
 
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
     .preview-shell {
-      width: min(1220px, calc(100% - 28px));
+      width: min(1240px, calc(100% - 28px));
       margin: 0 auto;
       padding: 28px 0 42px;
     }
@@ -43,13 +50,6 @@
       margin-bottom: 20px;
     }
 
-    h1,
-    h2,
-    h3,
-    p {
-      margin: 0;
-    }
-
     h1 {
       font-size: 30px;
       line-height: 1.16;
@@ -57,7 +57,9 @@
 
     .preview-head p,
     .option-note,
-    .lead {
+    .lead,
+    .field-help,
+    .compare {
       color: var(--muted);
       line-height: 1.55;
     }
@@ -76,25 +78,26 @@
 
     .option h2 {
       font-size: 18px;
+      line-height: 1.25;
     }
 
     .option-note {
-      min-height: 46px;
+      min-height: 64px;
       font-size: 13px;
     }
 
     .phone-frame {
       width: min(100%, 390px);
       margin: 0 auto;
-      border: 1px solid #cfd8df;
+      border: 1px solid #cad4dc;
       border-radius: 28px;
-      background: #f9faf8;
+      background: #f8faf9;
       box-shadow: var(--shadow);
       overflow: hidden;
     }
 
     .phone-screen {
-      min-height: 820px;
+      min-height: 860px;
       padding: 18px;
     }
 
@@ -107,7 +110,7 @@
     }
 
     .brand {
-      color: var(--teal-dark);
+      color: var(--teal);
       font-size: 11px;
       font-weight: 900;
     }
@@ -124,8 +127,8 @@
       min-height: 28px;
       border-radius: 999px;
       padding: 5px 10px;
-      background: #eaf4f2;
-      color: var(--teal-dark);
+      background: #e8f4f2;
+      color: var(--teal);
       font-size: 12px;
       font-weight: 900;
       white-space: nowrap;
@@ -141,6 +144,7 @@
     .panel h3 {
       margin-bottom: 6px;
       font-size: 18px;
+      line-height: 1.35;
     }
 
     .lead {
@@ -149,9 +153,9 @@
 
     .notice {
       margin-top: 12px;
-      border: 1px solid #d7e8e5;
+      border: 1px solid #d4e7e3;
       background: #eef8f6;
-      color: var(--teal-dark);
+      color: #0a665e;
       border-radius: 6px;
       padding: 10px 11px;
       font-size: 12px;
@@ -183,8 +187,8 @@
       display: grid;
       place-items: center;
       border-radius: 50%;
-      background: #eaf4f2;
-      color: var(--teal-dark);
+      background: #e8f4f2;
+      color: var(--teal);
       font-weight: 900;
       font-size: 13px;
     }
@@ -209,7 +213,7 @@
       min-height: 48px;
       border: 1px solid var(--line);
       border-radius: 5px;
-      background: #fff;
+      background: var(--field);
       color: var(--ink);
       padding: 10px 11px;
       font: inherit;
@@ -238,76 +242,193 @@
       margin-top: 10px;
     }
 
-    .grouped .field-row {
-      grid-template-columns: 1fr;
-      gap: 8px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 13px;
-      margin-bottom: 10px;
-      background: #fff;
+    [data-option="stepper"] .phone-screen {
+      background: #f5f7f9;
     }
 
-    .group-title {
-      margin: 16px 0 8px;
+    .step-card {
+      border: 1px solid #c9d9e6;
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .step-progress {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 5px;
+      margin: 12px 0 14px;
+    }
+
+    .step-progress span {
+      height: 6px;
+      border-radius: 999px;
+      background: #d9e2ea;
+    }
+
+    .step-progress span.is-done {
+      background: var(--blue);
+    }
+
+    .step-current {
+      border: 2px solid var(--blue);
+      background: #f7fbff;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 12px;
+    }
+
+    .step-kicker {
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .step-summary {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .step-summary-title {
       color: var(--blue);
       font-size: 13px;
       font-weight: 900;
     }
 
-    .grouped .num {
-      display: none;
-    }
-
-    .grouped .mock-submit {
-      background: var(--blue);
-    }
-
-    .brand-screen {
-      background: #f8f5f7;
-    }
-
-    .brand-hero {
-      border-radius: 12px;
-      padding: 18px;
-      background: linear-gradient(135deg, #fff, #f3e7ec);
-      border: 1px solid #ead4dc;
-      margin-bottom: 14px;
-    }
-
-    .brand-hero .brand {
-      color: var(--rose);
-    }
-
-    .brand-hero .pill {
-      background: #f7e6ec;
-      color: var(--rose);
-    }
-
-    .brand-panel {
-      border-color: #ead4dc;
-    }
-
-    .brand-panel .field-row {
-      grid-template-columns: 1fr;
-      border: 1px solid #ead4dc;
-      border-radius: 8px;
-      padding: 13px;
-      margin-bottom: 10px;
+    .step-item {
+      display: grid;
+      gap: 7px;
+      border: 1px solid #d5e0e8;
+      border-radius: 7px;
       background: #fff;
+      padding: 10px;
     }
 
-    .brand-panel .num {
-      display: none;
+    .step-item.is-muted {
+      background: #f7f9fb;
     }
 
-    .brand-panel label,
-    .brand-panel .field-label {
-      color: #3f2530;
+    .step-nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
     }
 
-    .brand-panel .mock-submit {
-      background: var(--rose);
+    .step-nav button {
+      min-height: 44px;
+      border: 1px solid #c9d9e6;
+      border-radius: 6px;
+      background: #fff;
+      color: var(--blue);
+      font-weight: 900;
+    }
+
+    .step-nav button:last-child {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    [data-option="quick"] .phone-screen {
+      background: #faf7f9;
+    }
+
+    [data-option="quick"] .brand,
+    [data-option="quick"] .pill {
+      color: var(--plum);
+    }
+
+    [data-option="quick"] .pill {
+      background: #f6e9f0;
+    }
+
+    .quick-identity {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .quick-identity .quick-field:nth-child(5) {
+      grid-column: 1 / -1;
+    }
+
+    .quick-field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .quick-field label {
+      font-size: 12px;
+      color: #624153;
+    }
+
+    .priority-panel {
+      display: grid;
+      gap: 10px;
+      border: 1px solid #e5cdd9;
+      border-radius: 8px;
+      background: #fff;
+      padding: 15px;
+      margin-top: 12px;
+    }
+
+    .priority-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .priority-head h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .priority-chip {
+      border-radius: 999px;
+      background: #fff3e6;
+      color: var(--amber);
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .rank-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .rank-card {
+      display: grid;
+      gap: 8px;
+      border: 1px solid #e5cdd9;
+      border-radius: 8px;
+      background: #fdfafb;
+      padding: 12px;
+    }
+
+    .rank-card strong {
+      color: var(--plum);
+      font-size: 13px;
+    }
+
+    .comment-panel {
+      display: grid;
+      gap: 8px;
+      border: 1px solid #e5cdd9;
+      border-radius: 8px;
+      background: #fff;
+      padding: 15px;
+      margin-top: 12px;
+    }
+
+    [data-option="quick"] .mock-submit {
+      background: var(--plum);
     }
 
     .compare {
@@ -316,8 +437,6 @@
       border-radius: 8px;
       background: var(--paper);
       padding: 16px;
-      color: var(--muted);
-      line-height: 1.6;
       font-size: 14px;
     }
 
@@ -334,19 +453,33 @@
         min-height: 0;
       }
     }
+
+    @media (max-width: 420px) {
+      .phone-screen {
+        padding: 14px;
+      }
+
+      .quick-identity {
+        grid-template-columns: 1fr;
+      }
+
+      .quick-identity .quick-field:nth-child(5) {
+        grid-column: auto;
+      }
+    }
   </style>
 </head>
 <body>
   <main class="preview-shell">
     <header class="preview-head">
       <h1>참가자 투표 UI 3안</h1>
-      <p>실제 운영 데이터와 연결되지 않은 디자인 목업입니다. 세 안 모두 실제 투표 항목 8개와 실제 입력 타입을 반영합니다.</p>
+      <p>실제 운영 데이터와 연결되지 않은 디자인 목업입니다. 세 안 모두 실제 투표 항목 8개와 실제 입력 타입을 그대로 반영합니다.</p>
     </header>
 
     <section class="option-grid">
-      <article class="option">
-        <h2>A. 단순 설문지형</h2>
-        <p class="option-note">네이버폼에 가장 가까운 흐름입니다. 모든 문항을 한 번에 보고 빠르게 제출하는 현장 투표용 기본안입니다.</p>
+      <article class="option" data-option="linear">
+        <h2>A. 전체 설문형</h2>
+        <p class="option-note">네이버폼에 가장 가까운 안입니다. 모든 문항을 한 화면에서 위에서 아래로 확인하고 제출합니다.</p>
         <div class="phone-frame">
           <div class="phone-screen">
             <div class="topline">
@@ -359,7 +492,7 @@
             <section class="panel">
               <h3>오늘 가장 마음이 갔던 이성을 선택해 주세요.</h3>
               <p class="lead">입력하신 내용은 이번 모임의 매칭 결과 계산에만 사용됩니다.</p>
-              <div class="notice">후기를 남겨주신 분들께는 확인 후 커피 쿠폰을 준비해드릴 예정입니다.</div>
+              <div class="notice">제출 전 본인 번호와 연락처를 한 번 더 확인해 주세요.</div>
               <form class="form">
                 <div class="field-row">
                   <span class="num">1</span>
@@ -424,9 +557,9 @@
         </div>
       </article>
 
-      <article class="option">
-        <h2>B. 그룹 설문형</h2>
-        <p class="option-note">문항은 모두 보이되 본인 정보, 호감 선택, 선택 메모로 묶습니다. 길어 보이는 부담은 줄지만 A안보다 구조가 조금 복잡합니다.</p>
+      <article class="option" data-option="stepper">
+        <h2>B. 단계 진행형</h2>
+        <p class="option-note">한 번에 한 질문에 집중하는 안입니다. 실수는 줄지만, 참가자가 여러 화면을 넘기는 느낌을 받습니다.</p>
         <div class="phone-frame">
           <div class="phone-screen">
             <div class="topline">
@@ -434,59 +567,127 @@
                 <p class="brand">부부, 호기심에서 결혼까지</p>
                 <h3 class="title">호감도 투표</h3>
               </div>
-              <span class="pill">투표 중</span>
+              <span class="pill">3 / 8</span>
             </div>
-            <section class="panel grouped">
-              <h3>정보를 확인하고 투표해주세요.</h3>
-              <p class="lead">문항은 세 묶음으로 나뉘지만 한 화면에서 모두 확인할 수 있습니다.</p>
-              <form class="form">
-                <div class="group-title">본인 정보</div>
-                <div class="field-row"><div class="field-body"><label for="b-gender">성별</label><select id="b-gender"><option>선택</option><option>남자</option><option>여자</option></select></div></div>
-                <div class="field-row"><div class="field-body"><label for="b-seat">본인 번호를 선택해주세요</label><select id="b-seat"><option>선택</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select></div></div>
-                <div class="field-row"><div class="field-body"><label for="b-name">이름</label><input id="b-name" placeholder="예시) 김하늘"></div></div>
-                <div class="field-row"><div class="field-body"><label for="b-phone">연락처</label><input id="b-phone" inputmode="tel" placeholder="예시) 01011223344"></div></div>
-                <div class="field-row"><div class="field-body"><label for="b-nickname">들어오시며 말씀주신 닉네임</label><input id="b-nickname" placeholder="예시) 제이"></div></div>
-                <div class="group-title">호감 선택</div>
-                <div class="field-row"><div class="field-body"><label for="b-first">오늘의 1순위 이성분은 누구였나요?</label><select id="b-first"><option>선택</option><option>없음</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select></div></div>
-                <div class="field-row"><div class="field-body"><label for="b-second">오늘의 2순위 이성분은 누구였나요?</label><select id="b-second"><option>선택</option><option>없음</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select></div></div>
-                <div class="group-title">선택 메모</div>
-                <div class="field-row"><div class="field-body"><label for="b-comment">[선택] 부부에게 하고 싶은 말</label><textarea id="b-comment" placeholder="좋거나 불편하셨던 사항을 알려주세요."></textarea></div></div>
-                <button class="mock-submit" type="button">제출하기</button>
-              </form>
+            <section class="step-card">
+              <p class="lead">필수 정보부터 순서대로 확인합니다.</p>
+              <div class="step-progress" aria-label="진행률">
+                <span class="is-done"></span>
+                <span class="is-done"></span>
+                <span class="is-done"></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <div class="step-current">
+                <p class="step-kicker">지금 입력 중</p>
+                <label for="b-name">이름</label>
+                <input id="b-name" placeholder="예시) 김하늘">
+                <p class="field-help">명단 확인용으로만 사용됩니다.</p>
+              </div>
+              <div class="step-nav">
+                <button type="button">이전</button>
+                <button type="button">다음</button>
+              </div>
             </section>
+            <form class="step-summary" aria-label="전체 문항 미리보기">
+              <div class="step-summary-title">전체 8개 문항 구성</div>
+              <div class="step-item is-muted">
+                <label for="b-gender">성별</label>
+                <select id="b-gender"><option>선택</option><option>남자</option><option>여자</option></select>
+              </div>
+              <div class="step-item is-muted">
+                <label for="b-seat">본인 번호를 선택해주세요</label>
+                <select id="b-seat"><option>선택</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select>
+              </div>
+              <div class="step-item">
+                <label for="b-phone">연락처</label>
+                <input id="b-phone" inputmode="tel" placeholder="예시) 01011223344">
+              </div>
+              <div class="step-item">
+                <label for="b-nickname">들어오시며 말씀주신 닉네임</label>
+                <input id="b-nickname" placeholder="예시) 제이">
+              </div>
+              <div class="step-item">
+                <label for="b-first">오늘의 1순위 이성분은 누구였나요?</label>
+                <select id="b-first"><option>선택</option><option>없음</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select>
+              </div>
+              <div class="step-item">
+                <label for="b-second">오늘의 2순위 이성분은 누구였나요?</label>
+                <select id="b-second"><option>선택</option><option>없음</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select>
+              </div>
+              <div class="step-item">
+                <label for="b-comment">[선택] 부부에게 하고 싶은 말</label>
+                <textarea id="b-comment" placeholder="좋거나 불편하셨던 사항을 알려주세요."></textarea>
+              </div>
+              <button class="mock-submit" type="button">마지막 단계에서 제출</button>
+            </form>
           </div>
         </div>
       </article>
 
-      <article class="option">
-        <h2>C. 부부 카드형</h2>
-        <p class="option-note">같은 항목을 브랜드 카드 스타일로 보여줍니다. 분위기는 좋지만 현장 투표에서는 A/B안보다 시각 요소가 더 많습니다.</p>
+      <article class="option" data-option="quick">
+        <h2>C. 빠른 제출형</h2>
+        <p class="option-note">현장 속도 우선 안입니다. 본인 정보는 짧게 묶고, 실제로 중요한 1순위/2순위 선택을 크게 보여줍니다.</p>
         <div class="phone-frame">
-          <div class="phone-screen brand-screen">
-            <section class="brand-hero">
-              <div class="topline">
-                <div>
-                  <p class="brand">부부</p>
-                  <h3 class="title">호기심에서 결혼까지</h3>
-                </div>
-                <span class="pill">투표 중</span>
+          <div class="phone-screen">
+            <div class="topline">
+              <div>
+                <p class="brand">부부, 호기심에서 결혼까지</p>
+                <h3 class="title">빠른 호감 투표</h3>
               </div>
-              <p class="lead">오늘의 끌림을 조심스럽게 기록합니다.</p>
+              <span class="pill">약 1분</span>
+            </div>
+            <section class="panel">
+              <h3>본인 확인</h3>
+              <p class="lead">매칭 오류를 막기 위해 필요한 정보만 먼저 확인합니다.</p>
+              <div class="quick-identity">
+                <div class="quick-field">
+                  <label for="c-gender">성별</label>
+                  <select id="c-gender"><option>선택</option><option>남자</option><option>여자</option></select>
+                </div>
+                <div class="quick-field">
+                  <label for="c-seat">본인 번호를 선택해주세요</label>
+                  <select id="c-seat"><option>선택</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select>
+                </div>
+                <div class="quick-field">
+                  <label for="c-name">이름</label>
+                  <input id="c-name" placeholder="김하늘">
+                </div>
+                <div class="quick-field">
+                  <label for="c-phone">연락처</label>
+                  <input id="c-phone" inputmode="tel" placeholder="01011223344">
+                </div>
+                <div class="quick-field">
+                  <label for="c-nickname">들어오시며 말씀주신 닉네임</label>
+                  <input id="c-nickname" placeholder="예시) 제이">
+                </div>
+              </div>
             </section>
-            <section class="panel brand-panel">
-              <h3>호감도 투표</h3>
-              <p class="lead">아래 문항을 순서대로 작성해주세요.</p>
-              <form class="form">
-                <div class="field-row"><div class="field-body"><label for="c-gender">성별</label><select id="c-gender"><option>선택</option><option>남자</option><option>여자</option></select></div></div>
-                <div class="field-row"><div class="field-body"><label for="c-seat">본인 번호를 선택해주세요</label><select id="c-seat"><option>선택</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select></div></div>
-                <div class="field-row"><div class="field-body"><label for="c-name">이름</label><input id="c-name" placeholder="예시) 김하늘"></div></div>
-                <div class="field-row"><div class="field-body"><label for="c-phone">연락처</label><input id="c-phone" inputmode="tel" placeholder="예시) 01011223344"></div></div>
-                <div class="field-row"><div class="field-body"><label for="c-nickname">들어오시며 말씀주신 닉네임</label><input id="c-nickname" placeholder="예시) 제이"></div></div>
-                <div class="field-row"><div class="field-body"><label for="c-first">오늘의 1순위 이성분은 누구였나요?</label><select id="c-first"><option>선택</option><option>없음</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select></div></div>
-                <div class="field-row"><div class="field-body"><label for="c-second">오늘의 2순위 이성분은 누구였나요?</label><select id="c-second"><option>선택</option><option>없음</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select></div></div>
-                <div class="field-row"><div class="field-body"><label for="c-comment">[선택] 부부에게 하고 싶은 말</label><textarea id="c-comment" placeholder="좋거나 불편하셨던 사항을 알려주세요."></textarea></div></div>
-                <button class="mock-submit" type="button">제출하기</button>
-              </form>
+            <section class="priority-panel">
+              <div class="priority-head">
+                <h3>호감 선택</h3>
+                <span class="priority-chip">핵심 2문항</span>
+              </div>
+              <div class="rank-grid">
+                <div class="rank-card">
+                  <strong>가장 마음이 갔던 분</strong>
+                  <label for="c-first">오늘의 1순위 이성분은 누구였나요?</label>
+                  <select id="c-first"><option>선택</option><option>없음</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select>
+                </div>
+                <div class="rank-card">
+                  <strong>다음으로 궁금했던 분</strong>
+                  <label for="c-second">오늘의 2순위 이성분은 누구였나요?</label>
+                  <select id="c-second"><option>선택</option><option>없음</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select>
+                </div>
+              </div>
+            </section>
+            <section class="comment-panel">
+              <label for="c-comment">[선택] 부부에게 하고 싶은 말</label>
+              <textarea id="c-comment" placeholder="좋거나 불편하셨던 사항을 알려주세요."></textarea>
+              <button class="mock-submit" type="button">바로 제출하기</button>
             </section>
           </div>
         </div>
@@ -494,7 +695,7 @@
     </section>
 
     <section class="compare">
-      <b>추천:</b> A안. 실제 항목과 입력 타입을 모두 넣어 비교하면, 현장 투표에는 가장 익숙하고 빠른 단순 설문지형이 맞습니다. B안은 정리는 잘 되지만 길어진 화면에서 섹션 구분이 과하고, C안은 브랜드감은 좋지만 투표 완료 속도보다 분위기가 앞섭니다.
+      <b>차이 요약:</b> A는 익숙함과 전체 확인이 강점입니다. B는 한 문항 집중이라 실수 방지에 좋지만 제출 시간이 길어질 수 있습니다. C는 현장 속도를 가장 우선해 1순위/2순위 선택을 크게 잡은 안입니다. 지금 목적이 “참가자 설문은 빠르고 안정적으로”라면 실제 적용 후보는 A 또는 C가 맞습니다.
     </section>
   </main>
 </body>
