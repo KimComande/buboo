@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>부부 참가자 UI 추천 혼합안</title>
+  <style>
+    :root {
+      --bg: #f3f5f1;
+      --ink: #172026;
+      --muted: #65717b;
+      --line: #d6dde2;
+      --paper: #ffffff;
+      --field: #fbfcfd;
+      --teal: #08796f;
+      --plum: #8a3f66;
+      --amber: #a66518;
+      --soft-teal: #e8f4f2;
+      --soft-plum: #faf4f7;
+      --shadow: 0 20px 50px rgba(23, 32, 38, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      letter-spacing: 0;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    .preview-shell {
+      width: min(1080px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 42px;
+    }
+
+    .preview-head {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 30px;
+      line-height: 1.16;
+    }
+
+    .preview-head p,
+    .lead,
+    .field-help,
+    .note {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .preview-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(330px, 420px);
+      gap: 26px;
+      align-items: start;
+    }
+
+    .reason-panel {
+      display: grid;
+      gap: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      padding: 20px;
+    }
+
+    .reason-panel h2 {
+      font-size: 20px;
+      line-height: 1.3;
+    }
+
+    .reason-list {
+      display: grid;
+      gap: 10px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .reason-list li {
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .reason-list li:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .reason-list b {
+      color: var(--ink);
+    }
+
+    .phone-frame {
+      width: min(100%, 390px);
+      margin: 0 auto;
+      border: 1px solid #c9d4dc;
+      border-radius: 28px;
+      background: #f9fbfa;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .phone-screen {
+      min-height: 860px;
+      padding: 18px;
+    }
+
+    .topline {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .brand {
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .title {
+      margin-top: 4px;
+      font-size: 24px;
+      line-height: 1.15;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: var(--soft-teal);
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .panel h3 {
+      margin-bottom: 6px;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .lead {
+      font-size: 13px;
+    }
+
+    .identity-section {
+      display: grid;
+      gap: 0;
+      margin-top: 14px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding: 14px 0;
+    }
+
+    .field-row:first-child {
+      border-top: 0;
+    }
+
+    .num {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--soft-teal);
+      color: var(--teal);
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .field-body {
+      display: grid;
+      gap: 8px;
+    }
+
+    label,
+    .field-label {
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.42;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--field);
+      color: var(--ink);
+      padding: 10px 11px;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: none;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #98a3ab;
+      opacity: 1;
+    }
+
+    .priority-section {
+      display: grid;
+      gap: 11px;
+      border: 2px solid #e3c6d5;
+      border-radius: 8px;
+      background: var(--soft-plum);
+      padding: 15px;
+      margin-top: 12px;
+    }
+
+    .priority-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .priority-head h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .priority-chip {
+      border-radius: 999px;
+      background: #fff3e6;
+      color: var(--amber);
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .rank-card {
+      display: grid;
+      gap: 8px;
+      border: 1px solid #e3c6d5;
+      border-radius: 8px;
+      background: var(--paper);
+      padding: 12px;
+    }
+
+    .rank-card strong {
+      color: var(--plum);
+      font-size: 13px;
+    }
+
+    .comment-section {
+      display: grid;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      padding: 15px;
+      margin-top: 12px;
+    }
+
+    .sticky-submit {
+      position: sticky;
+      bottom: 0;
+      display: grid;
+      gap: 8px;
+      margin: 12px -18px -18px;
+      padding: 12px 18px 18px;
+      border-top: 1px solid var(--line);
+      background: rgba(249, 251, 250, 0.95);
+      backdrop-filter: blur(8px);
+    }
+
+    .sticky-submit button {
+      width: 100%;
+      min-height: 52px;
+      border: 0;
+      border-radius: 6px;
+      background: var(--teal);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .sticky-submit p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .note {
+      margin-top: 14px;
+      font-size: 13px;
+    }
+
+    .back-link {
+      color: var(--teal);
+      font-weight: 900;
+      text-decoration: none;
+    }
+
+    @media (max-width: 860px) {
+      .preview-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .reason-panel {
+        order: 2;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .phone-screen {
+        padding: 14px;
+      }
+
+      .sticky-submit {
+        margin: 12px -14px -14px;
+        padding: 12px 14px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="preview-shell" data-preview="recommended-hybrid">
+    <header class="preview-head">
+      <h1>추천 혼합안</h1>
+      <p>전체 흐름 + 호감 선택 강조. A의 익숙한 설문 흐름을 유지하고, C처럼 1순위/2순위 선택만 더 잘 보이게 만든 안입니다.</p>
+    </header>
+
+    <section class="preview-layout">
+      <aside class="reason-panel">
+        <h2>실제 적용 후보</h2>
+        <ul class="reason-list">
+          <li><b>A에서 가져온 것:</b> 성별부터 메모까지 한 화면에서 전부 확인하는 익숙한 설문 구조.</li>
+          <li><b>C에서 가져온 것:</b> 실제 매칭에 중요한 1순위와 2순위 선택을 별도 강조 영역으로 분리.</li>
+          <li><b>운영 기준:</b> 참가자는 빠르게 제출하고, 운영자는 본인 정보와 호감 선택을 안정적으로 받는 방향.</li>
+        </ul>
+        <p class="note"><a class="back-link" href="./participant-ui-options.html">3안 비교 페이지로 돌아가기</a></p>
+      </aside>
+
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="topline">
+            <div>
+              <p class="brand">부부, 호기심에서 결혼까지</p>
+              <h2 class="title">호감도 투표</h2>
+            </div>
+            <span class="pill">투표 중</span>
+          </div>
+
+          <section class="panel">
+            <h3>오늘 가장 마음이 갔던 분을 선택해 주세요.</h3>
+            <p class="lead">본인 확인 정보를 먼저 적고, 아래 호감 선택에서 1순위와 2순위를 고르면 됩니다.</p>
+
+            <form class="identity-section">
+              <div class="field-row">
+                <span class="num">1</span>
+                <div class="field-body">
+                  <label for="r-gender">성별</label>
+                  <select id="r-gender"><option>선택</option><option>남자</option><option>여자</option></select>
+                </div>
+              </div>
+              <div class="field-row">
+                <span class="num">2</span>
+                <div class="field-body">
+                  <label for="r-seat">본인 번호를 선택해주세요</label>
+                  <select id="r-seat"><option>선택</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select>
+                </div>
+              </div>
+              <div class="field-row">
+                <span class="num">3</span>
+                <div class="field-body">
+                  <label for="r-name">이름</label>
+                  <input id="r-name" placeholder="예시) 김하늘">
+                </div>
+              </div>
+              <div class="field-row">
+                <span class="num">4</span>
+                <div class="field-body">
+                  <label for="r-phone">연락처</label>
+                  <input id="r-phone" inputmode="tel" placeholder="예시) 01011223344">
+                </div>
+              </div>
+              <div class="field-row">
+                <span class="num">5</span>
+                <div class="field-body">
+                  <label for="r-nickname">들어오시며 말씀주신 닉네임</label>
+                  <input id="r-nickname" placeholder="예시) 제이">
+                </div>
+              </div>
+            </form>
+          </section>
+
+          <section class="priority-section">
+            <div class="priority-head">
+              <h3>호감 선택</h3>
+              <span class="priority-chip">핵심 2문항</span>
+            </div>
+            <div class="rank-card">
+              <strong>1순위</strong>
+              <label for="r-first">오늘의 1순위 이성분은 누구였나요?</label>
+              <select id="r-first"><option>선택</option><option>없음</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select>
+            </div>
+            <div class="rank-card">
+              <strong>2순위</strong>
+              <label for="r-second">오늘의 2순위 이성분은 누구였나요?</label>
+              <select id="r-second"><option>선택</option><option>없음</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option><option>5번</option></select>
+            </div>
+          </section>
+
+          <section class="comment-section">
+            <label for="r-comment">[선택] 부부에게 하고 싶은 말</label>
+            <textarea id="r-comment" placeholder="좋거나 불편하셨던 사항을 알려주세요."></textarea>
+          </section>
+
+          <div class="sticky-submit">
+            <button type="button">제출하기</button>
+            <p>제출 전 본인 번호와 1순위/2순위를 한 번 더 확인해 주세요.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

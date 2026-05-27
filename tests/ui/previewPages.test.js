@@ -39,6 +39,37 @@ test("participant UI options preview exposes three distinct full-field designs",
   assert.doesNotMatch(source, /DATABASE_URL|ADMIN_PASSWORD|local-admin/);
 });
 
+test("participant recommended preview combines full survey flow with emphasized priority choices", () => {
+  const filePath = "public/_preview/participant-ui-recommended.html";
+  assert.equal(existsSync(filePath), true);
+
+  const source = readFileSync(filePath, "utf8");
+  assert.match(source, /추천 혼합안/);
+  assert.match(source, /전체 흐름 \+ 호감 선택 강조/);
+  assert.match(source, /data-preview="recommended-hybrid"/);
+  assert.match(source, /class="[^"]*identity-section/);
+  assert.match(source, /class="[^"]*priority-section/);
+  assert.match(source, /class="[^"]*sticky-submit/);
+
+  for (const label of [
+    "성별",
+    "본인 번호",
+    "이름",
+    "연락처",
+    "닉네임",
+    "1순위",
+    "2순위",
+    "부부에게 하고 싶은 말",
+  ]) {
+    assert.equal(countText(source, label) >= 1, true, `${label} should appear in the recommended option`);
+  }
+
+  assert.equal(countText(source, "<select") >= 4, true);
+  assert.equal(countText(source, "<input") >= 3, true);
+  assert.equal(countText(source, "<textarea") >= 1, true);
+  assert.doesNotMatch(source, /DATABASE_URL|ADMIN_PASSWORD|local-admin/);
+});
+
 function countText(source, text) {
   return source.split(text).length - 1;
 }
