@@ -25,6 +25,7 @@ export default function EventClient({ slug, initialEventData = null }) {
   const [isSubmittingVote, setIsSubmittingVote] = useState(false);
   const [isLookingUpResult, setIsLookingUpResult] = useState(false);
   const [revealingMatchId, setRevealingMatchId] = useState("");
+  const [submitSuccessOpen, setSubmitSuccessOpen] = useState(false);
 
   useEffect(() => {
     if (initialEventData?.publicSlug === slug) {
@@ -82,14 +83,14 @@ export default function EventClient({ slug, initialEventData = null }) {
     setMessage("");
     setIsSubmittingVote(true);
     try {
-      const response = await api(`/api/events/${slug}/submissions`, {
+      await api(`/api/events/${slug}/submissions`, {
         method: "POST",
         body: vote,
       });
       const auth = { name: vote.name, phone: vote.phone };
       setLastAuth(auth);
       setResultAuth(auth);
-      setMessage(`제출이 완료되었어요. v${response.submission.version}로 저장되었습니다. 마감 전 다시 제출하면 최신 제출만 최종 반영됩니다.`);
+      setSubmitSuccessOpen(true);
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -162,6 +163,15 @@ export default function EventClient({ slug, initialEventData = null }) {
       </header>
 
       {message ? <p className="inline-message">{message}</p> : null}
+      {submitSuccessOpen ? (
+        <div className="success-modal-backdrop" role="presentation">
+          <div className="success-modal" role="dialog" aria-modal="true" aria-labelledby="submit-success-title">
+            <h2 id="submit-success-title">제출이 완료되었어요.</h2>
+            <p>수정하고 싶으시면 마감 전 다시 작성해주세요.</p>
+            <button className="primary-button" type="button" onClick={() => setSubmitSuccessOpen(false)}>확인</button>
+          </div>
+        </div>
+      ) : null}
 
       {canVote ? (
         <section className="panel vote-panel">

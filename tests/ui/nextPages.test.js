@@ -20,9 +20,17 @@ test("participant page uses the agreed offline vote form copy", () => {
   assert.match(source, /vote-panel/);
   assert.match(source, /vote-form/);
   assert.match(source, /isSubmittingVote/);
+  assert.match(source, /submitSuccessOpen/);
   assert.match(source, /제출 중/);
   assert.match(source, /제출이 완료되었어요/);
-  assert.match(source, /마감 전 다시 제출하면 최신 제출만 최종 반영됩니다/);
+  assert.match(source, /수정하고 싶으시면 마감 전 다시 작성해주세요/);
+  assert.match(source, /role="dialog"/);
+  assert.match(source, /aria-modal="true"/);
+  assert.match(source, /success-modal-backdrop/);
+  assert.match(source, /success-modal/);
+  assert.doesNotMatch(source, /v\$\{response\.submission\.version\}/);
+  assert.doesNotMatch(source, /저장되었습니다/);
+  assert.doesNotMatch(source, /최신 제출만 최종 반영됩니다/);
   assert.match(source, /form-question/);
   assert.match(source, /question-text/);
   assert.match(source, /성별/);
