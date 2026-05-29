@@ -22,6 +22,9 @@ export default function EventClient({ slug, initialEventData = null }) {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(!initialEventData);
   const [lastAuth, setLastAuth] = useState(null);
+  const [isSubmittingVote, setIsSubmittingVote] = useState(false);
+  const [isLookingUpResult, setIsLookingUpResult] = useState(false);
+  const [revealingMatchId, setRevealingMatchId] = useState("");
 
   useEffect(() => {
     if (initialEventData?.publicSlug === slug) {
@@ -75,7 +78,9 @@ export default function EventClient({ slug, initialEventData = null }) {
 
   async function submitVote(event) {
     event.preventDefault();
+    if (isSubmittingVote) return;
     setMessage("");
+    setIsSubmittingVote(true);
     try {
       const response = await api(`/api/events/${slug}/submissions`, {
         method: "POST",
@@ -84,16 +89,20 @@ export default function EventClient({ slug, initialEventData = null }) {
       const auth = { name: vote.name, phone: vote.phone };
       setLastAuth(auth);
       setResultAuth(auth);
-      setMessage(`투표가 제출되었습니다. v${response.submission.version}로 저장되었습니다. 마감 전 다시 제출하면 최신 제출만 계산됩니다.`);
+      setMessage(`제출이 완료되었어요. v${response.submission.version}로 저장되었습니다. 마감 전 다시 제출하면 최신 제출만 최종 반영됩니다.`);
     } catch (error) {
       setMessage(error.message);
+    } finally {
+      setIsSubmittingVote(false);
     }
   }
 
   async function lookupResult(event) {
     event.preventDefault();
+    if (isLookingUpResult) return;
     setMessage("");
     setResult(null);
+    setIsLookingUpResult(true);
     try {
       const payload = await api(`/api/events/${slug}/result`, {
         method: "POST",
@@ -103,11 +112,15 @@ export default function EventClient({ slug, initialEventData = null }) {
       setResult(payload);
     } catch (error) {
       setResult({ status: "error", message: error.message });
+    } finally {
+      setIsLookingUpResult(false);
     }
   }
 
   async function revealContact(match) {
-    if (!lastAuth) return;
+    if (!lastAuth || revealingMatchId) return;
+    setMessage("");
+    setRevealingMatchId(match.id);
     try {
       const payload = await api(`/api/events/${slug}/contact`, {
         method: "POST",
@@ -125,6 +138,8 @@ export default function EventClient({ slug, initialEventData = null }) {
       }));
     } catch (error) {
       setMessage(error.message);
+    } finally {
+      setRevealingMatchId("");
     }
   }
 
@@ -217,7 +232,9 @@ export default function EventClient({ slug, initialEventData = null }) {
             </label>
 
             <div className="form-actions wide vote-submit-row">
-              <button className="primary-button" type="submit">제출하기</button>
+              <button className="primary-button" type="submit" disabled={isSubmittingVote}>
+                {isSubmittingVote ? "제출 중..." : "제출하기"}
+              </button>
             </div>
           </form>
         </section>
@@ -248,17 +265,19 @@ export default function EventClient({ slug, initialEventData = null }) {
               <input required inputMode="tel" autoComplete="tel" placeholder="예시) 01011223344 또는 3344" value={resultAuth.phone} onChange={(event) => setResultAuth((current) => ({ ...current, phone: event.target.value }))} />
             </label>
             <div className="form-actions">
-              <button className="secondary-button" type="submit">결과 보기</button>
+              <button className="secondary-button" type="submit" disabled={isLookingUpResult}>
+                {isLookingUpResult ? "확인 중..." : "결과 보기"}
+              </button>
             </div>
           </form>
-          <ResultView result={result} onReveal={revealContact} />
+          <ResultView result={result} onReveal={revealContact} revealingMatchId={revealingMatchId} />
         </section>
       ) : null}
     </main>
   );
 }
 
-function ResultView({ result, onReveal }) {
+function ResultView({ result, onReveal, revealingMatchId }) {
   if (!result) return null;
   if (result.status === "error") return <p className="empty-state">{result.message}</p>;
   if (result.status === "pending") {
@@ -292,10 +311,13 @@ function ResultView({ result, onReveal }) {
           <h3>두 분의 마음이 닿았어요. ❤</h3>
           <p>서로를 향한 따뜻한 호감이 확인되어 매칭되었어요.</p>
           <p>{genderText(match.target.gender)} {match.target.seatNo}번</p>
+          <p className="contact-expiry-note">연락처는 오늘까지만 확인할 수 있어요. 잊지 않도록 지금 저장해 주세요.</p>
           {match.revealedPhone ? (
             <p className="contact-value">{formatPhone(match.revealedPhone)}</p>
           ) : (
-            <button className="secondary-button" type="button" onClick={() => onReveal(match)}>연락처 보기</button>
+            <button className="secondary-button" type="button" disabled={revealingMatchId === match.id} onClick={() => onReveal(match)}>
+              {revealingMatchId === match.id ? "연락처 확인 중..." : "연락처 보기"}
+            </button>
           )}
         </article>
       ))}

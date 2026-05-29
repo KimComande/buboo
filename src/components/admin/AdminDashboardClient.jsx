@@ -8,13 +8,14 @@ export default function AdminDashboardClient({ initialSlug }) {
   const [selectedRunId, setSelectedRunId] = useState("");
   const [message, setMessage] = useState("");
   const [memberKeyword, setMemberKeyword] = useState("");
+  const [pendingAction, setPendingAction] = useState("");
 
   useEffect(() => {
-    loadDashboard();
+    loadDashboard({ clearMessage: false });
   }, [slug]);
 
-  async function loadDashboard() {
-    setMessage("");
+  async function loadDashboard({ clearMessage = true } = {}) {
+    if (clearMessage) setMessage("");
     try {
       const payload = await api(`/api/admin/events/${slug}/dashboard`);
       setDashboard(payload);
@@ -28,21 +29,29 @@ export default function AdminDashboardClient({ initialSlug }) {
     }
   }
 
-  async function runAction(success, action) {
+  async function runAction(success, action, actionKey = "action") {
+    if (pendingAction) return;
     setMessage("");
+    setPendingAction(actionKey);
     try {
       const payload = await action();
-      setMessage(success);
       if (payload?.event?.publicSlug && payload.event.publicSlug !== slug) {
-        setSlug(payload.event.publicSlug);
+        const nextSlug = payload.event.publicSlug;
+        setSlug(nextSlug);
         const nextUrl = new URL(window.location.href);
-        nextUrl.searchParams.set("event", payload.event.publicSlug);
+        nextUrl.searchParams.set("event", nextSlug);
         window.history.replaceState({}, "", nextUrl.toString());
+        const nextDashboard = await api(`/api/admin/events/${nextSlug}/dashboard`);
+        setDashboard(nextDashboard);
+        setSelectedRunId(resolveRunId(nextDashboard, ""));
       } else {
-        await loadDashboard();
+        await loadDashboard({ clearMessage: false });
       }
+      setMessage(typeof success === "function" ? success(payload) : success);
     } catch (error) {
       setMessage(error.message);
+    } finally {
+      setPendingAction("");
     }
   }
 
@@ -78,16 +87,38 @@ export default function AdminDashboardClient({ initialSlug }) {
 
       <section className="toolbar-band">
         <CurrentEventSummary event={dashboard.event} />
-        <EventCreator onCreate={(body) => runAction("새 모임을 만들었습니다.", () => api("/api/admin/events", { method: "POST", body }))} />
+        <EventCreator
+          disabled={pendingAction === "create-event"}
+          onCreate={(body) => runAction(
+            (payload) => `새 모임이 만들어졌어요. 현재 모임: ${payload.event.publicSlug}. 참가자 링크가 새 모임으로 변경되었습니다.`,
+            () => api("/api/admin/events", { method: "POST", body }),
+            "create-event",
+          )}
+        />
         <div className="action-row">
-          <button className="primary-button" type="button" onClick={() => runAction("마감 및 계산을 완료했습니다.", () => api(`/api/admin/events/${slug}/calculate`, { method: "POST", body: {} }))}>마감 및 계산</button>
-          <button className="danger-button" type="button" onClick={() => {
+          <button
+            className="primary-button"
+            type="button"
+            disabled={Boolean(pendingAction)}
+            onClick={() => runAction(
+              "마감 및 계산이 완료됐어요. 참가자 화면은 지금 결과 정리 중으로 표시됩니다. 결과를 보여주려면 결과 공개를 눌러주세요.",
+              () => api(`/api/admin/events/${slug}/calculate`, { method: "POST", body: {} }),
+              "calculate",
+            )}
+          >
+            {pendingAction === "calculate" ? "계산 중..." : "마감 및 계산"}
+          </button>
+          <button className="danger-button" type="button" disabled={Boolean(pendingAction)} onClick={() => {
             if (!dashboard.latestRun) {
               setMessage("먼저 마감 및 계산을 실행해 주세요.");
               return;
             }
-            runAction("결과를 공개했습니다.", () => api(`/api/admin/events/${slug}/release`, { method: "POST", body: { runId: dashboard.latestRun.id } }));
-          }}>결과 공개</button>
+            runAction(
+              "결과가 공개됐어요. 참가자는 이제 이름과 연락처로 결과를 확인할 수 있습니다.",
+              () => api(`/api/admin/events/${slug}/release`, { method: "POST", body: { runId: dashboard.latestRun.id } }),
+              "release",
+            );
+          }}>{pendingAction === "release" ? "공개 중..." : "결과 공개"}</button>
         </div>
       </section>
 
@@ -120,34 +151,47 @@ export default function AdminDashboardClient({ initialSlug }) {
       </section>
 
       <section className="dashboard-grid">
-        <TablePanel title="매칭 결과" columns={["유형", "남자", "여자", "상태"]}>
-          {selectedMatches.length ? selectedMatches.map((match) => (
+        <TablePanel title="매칭 결과" columns={["No", "유형", "남자", "여자", "상태"]}>
+          {selectedMatches.length ? selectedMatches.map((match, index) => (
             <tr key={match.id}>
+              <td>{index + 1}</td>
               <td>{matchCodeText(match.matchCode)}</td>
               <td>{participantSummary(dashboard, match.maleParticipantId)}</td>
               <td>{participantSummary(dashboard, match.femaleParticipantId)}</td>
               <td>{match.status}</td>
             </tr>
-          )) : <EmptyRow colSpan={4} text="계산된 매칭이 없습니다." />}
+          )) : <EmptyRow colSpan={5} text="계산된 매칭이 없습니다." />}
         </TablePanel>
 
-        <TablePanel title="호감도 통계" columns={["순위", "번호", "이름", "1순위", "2순위", "점수"]}>
-          {selectedStats.length ? [...selectedStats].sort(compareStat).map((stat) => (
-            <tr key={stat.id}>
-              <td>{stat.genderRank ?? "득표 없음"}</td>
-              <td>{genderText(stat.gender)} {stat.seatNo}</td>
-              <td>{stat.name || "-"}<div className="small-text">{stat.nickname || ""}</div></td>
-              <td>{stat.receivedFirstCount}</td>
-              <td>{stat.receivedSecondCount}</td>
-              <td><strong>{stat.score}</strong></td>
+        <TablePanel title="연락처 열람 로그" columns={["No", "시각", "본 사람", "조회 대상"]}>
+          {selectedLogs.length ? selectedLogs.map((log, index) => (
+            <tr key={log.id}>
+              <td>{index + 1}</td>
+              <td>{formatTime(log.viewedAt)}</td>
+              <td>{participantSummary(dashboard, log.viewerParticipantId)}</td>
+              <td>{participantSummary(dashboard, log.targetParticipantId)}</td>
             </tr>
-          )) : <EmptyRow colSpan={6} text="통계가 없습니다." />}
+          )) : <EmptyRow colSpan={4} text="아직 열람 기록이 없습니다." />}
         </TablePanel>
       </section>
 
-      <TablePanel title="참가자 및 제출 버전" columns={["번호", "상태", "최신 제출", "선택", "버전"]} tableClassName="mobile-card-table participant-table">
-        {dashboard.participants.map((participant) => (
+      <TablePanel title="호감도 통계" columns={["순위", "번호", "이름", "1순위", "2순위", "점수"]}>
+        {selectedStats.length ? [...selectedStats].sort(compareStat).map((stat) => (
+          <tr key={stat.id}>
+            <td>{stat.genderRank ?? "득표 없음"}</td>
+            <td>{genderText(stat.gender)} {stat.seatNo}</td>
+            <td>{stat.name || "-"}<div className="small-text">{stat.nickname || ""}</div></td>
+            <td>{stat.receivedFirstCount}</td>
+            <td>{stat.receivedSecondCount}</td>
+            <td><strong>{stat.score}</strong></td>
+          </tr>
+        )) : <EmptyRow colSpan={6} text="통계가 없습니다." />}
+      </TablePanel>
+
+      <TablePanel title="참가자 및 제출 버전" columns={["No", "번호", "상태", "최신 제출", "선택", "버전"]} tableClassName="mobile-card-table participant-table">
+        {dashboard.participants.map((participant, index) => (
           <tr key={participant.id}>
+            <td data-label="No">{index + 1}</td>
             <td data-label="번호"><strong>{genderText(participant.gender)} {participant.seatNo}</strong></td>
             <td data-label="상태">{participant.latestSubmission ? "제출" : "미제출"}</td>
             <td data-label="최신 제출">{participant.latestSubmission ? <>{participant.latestSubmission.name}<div className="small-text">{participant.latestSubmission.nickname} / {formatPhone(participant.latestSubmission.phone)}</div></> : "-"}</td>
@@ -155,16 +199,6 @@ export default function AdminDashboardClient({ initialSlug }) {
             <td data-label="버전">{participant.submissionVersions.map((submission) => <div className="small-text" key={submission.id}>{submissionVersionText(dashboard, submission)}</div>)}</td>
           </tr>
         ))}
-      </TablePanel>
-
-      <TablePanel title="연락처 열람 로그" columns={["시각", "본 사람", "조회 대상"]}>
-        {selectedLogs.length ? selectedLogs.map((log) => (
-          <tr key={log.id}>
-            <td>{formatTime(log.viewedAt)}</td>
-            <td>{participantSummary(dashboard, log.viewerParticipantId)}</td>
-            <td>{participantSummary(dashboard, log.targetParticipantId)}</td>
-          </tr>
-        )) : <EmptyRow colSpan={3} text="아직 열람 기록이 없습니다." />}
       </TablePanel>
 
       <section className="panel">
@@ -190,7 +224,7 @@ function CurrentEventSummary({ event }) {
   );
 }
 
-function EventCreator({ onCreate }) {
+function EventCreator({ onCreate, disabled }) {
   const [form, setForm] = useState({
     title: "",
     eventDate: koreaTodayDate(),
@@ -212,12 +246,12 @@ function EventCreator({ onCreate }) {
   }
 
   return (
-    <form className="settings-grid" onSubmit={(submitEvent) => { submitEvent.preventDefault(); onCreate(createBody()); }}>
+    <form className="settings-grid" onSubmit={(submitEvent) => { submitEvent.preventDefault(); if (!disabled) onCreate(createBody()); }}>
       <label>행사명<input placeholder="예시) 5월 4주차 부부 매칭" value={form.title} onChange={(event) => update("title", event.target.value)} /></label>
       <label>행사일<input type="date" value={form.eventDate} onChange={(event) => update("eventDate", event.target.value)} /></label>
       <label>남자 번호<input type="number" min="1" value={form.maleCapacity} onChange={(event) => update("maleCapacity", event.target.value)} /></label>
       <label>여자 번호<input type="number" min="1" value={form.femaleCapacity} onChange={(event) => update("femaleCapacity", event.target.value)} /></label>
-      <button className="primary-button" type="submit">새 모임 만들기</button>
+      <button className="primary-button" type="submit" disabled={disabled}>{disabled ? "생성 중..." : "새 모임 만들기"}</button>
     </form>
   );
 }
@@ -442,7 +476,7 @@ function compareStat(a, b) {
 }
 
 function runTitle(run) {
-  return `계산 ${run.runNo}`;
+  return `${run.runNo}차 계산 결과`;
 }
 
 function matchCodeText(code) {
@@ -454,7 +488,7 @@ function statusText(status) {
     ready: "준비",
     voting: "투표 중",
     closed: "마감",
-    released: "공개",
+    released: "공개됨",
     ended: "종료",
     draft: "초안",
   })[status] ?? status ?? "-";

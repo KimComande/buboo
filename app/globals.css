@@ -277,6 +277,13 @@ textarea:focus {
   color: #fff;
 }
 
+.primary-button:disabled,
+.secondary-button:disabled,
+.danger-button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
 .status-pill {
   display: inline-flex;
   min-height: 32px;
@@ -360,6 +367,11 @@ textarea:focus {
   padding: 7px 10px;
   font-size: 18px;
   font-weight: 900;
+}
+
+.contact-expiry-note {
+  color: var(--accent-strong);
+  font-weight: 800;
 }
 
 .metric-strip {

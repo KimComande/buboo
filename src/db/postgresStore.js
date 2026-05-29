@@ -3,6 +3,7 @@ import { and, eq, sql } from "drizzle-orm";
 import pg from "pg";
 import { AppError } from "../appLogic.js";
 import { loadLocalEnv } from "../config/env.js";
+import { canViewContact } from "../domain/contactAccess.js";
 import { validateChoicePair } from "../domain/choices.js";
 import { createSeedData } from "../seedData.js";
 import * as schema from "./schema.js";
@@ -162,6 +163,135 @@ export async function submitSurvey(slug, payload, { now = new Date().toISOString
   }
 }
 
+export async function getParticipantResult(slug, auth, { now = new Date().toISOString() } = {}) {
+  const currentPool = getPostgresPool();
+  const event = await findEventByPublicSlug(currentPool, slug);
+  if (event.status !== "released" || !event.releasedCalculationRunId) {
+    return { status: "pending", event: publicEventPayload(event) };
+  }
+  if (resultExpired(event, now)) {
+    return { status: "expired", event: publicEventPayload(event) };
+  }
+
+  const viewer = await authenticateParticipantForEvent(currentPool, event.id, auth);
+  const matchResult = await currentPool.query(
+    `select id,
+            male_participant_id as "maleParticipantId",
+            female_participant_id as "femaleParticipantId"
+       from match_results
+      where event_id = $1
+        and calculation_run_id = $2
+        and status = 'released'
+        and (male_participant_id = $3 or female_participant_id = $3)
+      order by created_at asc`,
+    [event.id, event.releasedCalculationRunId, viewer.id],
+  );
+  const targetIds = matchResult.rows.map((match) => (
+    match.maleParticipantId === viewer.id ? match.femaleParticipantId : match.maleParticipantId
+  ));
+  const targetProfiles = await publicParticipantSeatProfiles(currentPool, targetIds);
+  const matches = matchResult.rows.map((match) => {
+    const targetParticipantId = match.maleParticipantId === viewer.id
+      ? match.femaleParticipantId
+      : match.maleParticipantId;
+    return {
+      id: match.id,
+      target: targetProfiles.get(targetParticipantId) ?? {
+        participantId: targetParticipantId,
+        gender: "",
+        seatNo: null,
+      },
+    };
+  });
+
+  return {
+    status: "released",
+    event: publicEventPayload(event),
+    viewer: {
+      participantId: viewer.id,
+      gender: viewer.gender,
+      seatNo: viewer.seatNo,
+      name: viewer.name,
+      nickname: viewer.nickname,
+    },
+    matches,
+  };
+}
+
+export async function viewContact(slug, {
+  name,
+  phone,
+  matchResultId,
+  targetParticipantId,
+  ipAddress = "",
+  userAgent = "",
+}, { now = new Date().toISOString() } = {}) {
+  const currentPool = getPostgresPool();
+  const client = await currentPool.connect();
+  try {
+    await client.query("begin");
+    await client.query("select pg_advisory_xact_lock($1)", [advisoryLockId]);
+
+    const event = await findEventByPublicSlug(client, slug);
+    if (resultExpired(event, now)) throw new AppError("result_expired", 403);
+
+    const viewer = await authenticateParticipantForEvent(client, event.id, { name, phone });
+    const matchResult = await client.query(
+      `select id,
+              calculation_run_id as "calculationRunId",
+              status,
+              male_participant_id as "maleParticipantId",
+              female_participant_id as "femaleParticipantId"
+         from match_results
+        where id = $1 and event_id = $2
+        limit 1`,
+      [matchResultId, event.id],
+    );
+    const match = matchResult.rows[0];
+    if (!match) throw new AppError("match_not_found", 404);
+
+    const access = canViewContact({
+      eventStatus: event.status,
+      eventReleasedCalculationRunId: event.releasedCalculationRunId,
+      matchCalculationRunId: match.calculationRunId,
+      matchStatus: match.status,
+      viewerParticipantId: viewer.id,
+      targetParticipantId,
+      maleParticipantId: match.maleParticipantId,
+      femaleParticipantId: match.femaleParticipantId,
+    });
+    if (!access.ok) throw new AppError(access.reason, 403);
+
+    const countResult = await client.query("select count(*)::int as count from contact_view_logs");
+    const logId = `CVL-${countResult.rows[0].count + 1}`;
+    await client.query(
+      `insert into contact_view_logs (
+         id, event_id, match_result_id, viewer_participant_id, target_participant_id,
+         viewed_at, ip_address, user_agent
+       ) values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        logId,
+        event.id,
+        match.id,
+        viewer.id,
+        targetParticipantId,
+        now,
+        String(ipAddress ?? ""),
+        String(userAgent ?? ""),
+      ],
+    );
+
+    const target = await privateParticipantProfile(client, targetParticipantId);
+    await client.query("commit");
+    return { target };
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function writeDb(db) {
   const currentPool = getPostgresPool();
   await ensurePostgresSchema(currentPool);
@@ -212,6 +342,153 @@ export async function keepAlive(now = new Date().toISOString()) {
     ["supabase-free-keepalive", now],
   );
   return { ok: true, checkedAt: now };
+}
+
+async function findEventByPublicSlug(clientOrPool, slug) {
+  const result = await clientOrPool.query(
+    `select id,
+            title,
+            event_date as "eventDate",
+            status,
+            public_slug as "publicSlug",
+            male_capacity as "maleCapacity",
+            female_capacity as "femaleCapacity",
+            vote_opens_at as "voteOpensAt",
+            vote_closes_at as "voteClosesAt",
+            result_released_at as "resultReleasedAt",
+            released_calculation_run_id as "releasedCalculationRunId"
+       from events
+      where public_slug = $1
+      limit 1`,
+    [slug],
+  );
+  const event = result.rows[0];
+  if (!event) throw new AppError("event_not_found", 404);
+  return event;
+}
+
+async function authenticateParticipantForEvent(clientOrPool, eventId, { name, phone }) {
+  const normalizedName = normalizeName(name);
+  const normalizedPhone = normalizePhone(phone);
+  if (!normalizedPhone) throw new AppError("phone_required", 400);
+
+  const phoneColumn = normalizedPhone.length === 4 ? "ss.phone_last4" : "ss.phone";
+  const result = await clientOrPool.query(
+    `select ep.id,
+            ep.gender,
+            ep.seat_no as "seatNo",
+            ep.latest_submission_id as "latestSubmissionId",
+            ss.id as "submissionId",
+            ss.name,
+            ss.nickname,
+            ss.phone,
+            ss.phone_last4 as "phoneLast4",
+            ss.submitted_at as "submittedAt",
+            m.name as "memberName",
+            m.nickname as "memberNickname",
+            m.canonical_name as "canonicalName",
+            m.canonical_nickname as "canonicalNickname",
+            m.latest_name as "latestName",
+            m.latest_nickname as "latestNickname",
+            m.name_aliases as "nameAliases",
+            m.nickname_aliases as "nicknameAliases"
+       from survey_submissions ss
+       join event_participants ep on ep.id = ss.event_participant_id
+       left join members m on m.id = ss.member_id
+      where ss.event_id = $1
+        and ss.is_latest = true
+        and ${phoneColumn} = $2
+      order by ss.submitted_at desc`,
+    [eventId, normalizedPhone],
+  );
+  const rows = normalizedPhone.length === 4
+    ? result.rows.filter((row) => submissionMatchesName(row, normalizedName))
+    : result.rows;
+
+  if (rows.length === 0) throw new AppError("participant_auth_failed", 401);
+  if (
+    normalizedPhone.length === 4 &&
+    new Set(rows.map((row) => row.id)).size > 1
+  ) {
+    throw new AppError("participant_auth_ambiguous", 409);
+  }
+
+  return rows[0];
+}
+
+function submissionMatchesName(row, normalizedName) {
+  return [
+    row.name,
+    row.memberName,
+    row.memberNickname,
+    row.canonicalName,
+    row.canonicalNickname,
+    row.latestName,
+    row.latestNickname,
+    ...(Array.isArray(row.nameAliases) ? row.nameAliases : []),
+    ...(Array.isArray(row.nicknameAliases) ? row.nicknameAliases : []),
+  ].some((value) => normalizeOptionalName(value) === normalizedName);
+}
+
+async function publicParticipantSeatProfiles(clientOrPool, participantIds) {
+  const uniqueIds = [...new Set(participantIds.filter(Boolean))];
+  if (!uniqueIds.length) return new Map();
+  const result = await clientOrPool.query(
+    `select id, gender, seat_no as "seatNo"
+       from event_participants
+      where id = any($1::text[])`,
+    [uniqueIds],
+  );
+  return new Map(result.rows.map((participant) => [participant.id, {
+    participantId: participant.id,
+    gender: participant.gender ?? "",
+    seatNo: participant.seatNo ?? null,
+  }]));
+}
+
+async function privateParticipantProfile(clientOrPool, participantId) {
+  const result = await clientOrPool.query(
+    `select ep.id,
+            ep.gender,
+            ep.seat_no as "seatNo",
+            ss.phone
+       from event_participants ep
+       left join survey_submissions ss on ss.id = ep.latest_submission_id
+      where ep.id = $1
+      limit 1`,
+    [participantId],
+  );
+  const participant = result.rows[0];
+  return {
+    participantId,
+    gender: participant?.gender ?? "",
+    seatNo: participant?.seatNo ?? null,
+    phone: participant?.phone ?? "",
+  };
+}
+
+function resultExpired(event, now) {
+  if (!event.resultReleasedAt) return false;
+  return koreaDateOnly(now) > event.eventDate;
+}
+
+function koreaDateOnly(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value ?? "").slice(0, 10);
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const part = (type) => parts.find((item) => item.type === type)?.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
+function normalizeOptionalName(value) {
+  const text = String(value ?? "").trim();
+  return text ? text.toLowerCase().replace(/\s+/g, "") : "";
 }
 
 async function snapshotFromDb(orm) {

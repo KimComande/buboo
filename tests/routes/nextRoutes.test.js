@@ -47,6 +47,27 @@ test("participant submission route uses a dedicated store mutation", () => {
   assert.doesNotMatch(postgresSource.match(/export async function submitSurvey[\s\S]*?(?=\nexport async function|\nasync function|\nfunction |$)/)?.[0] ?? "", /snapshotFromDb/);
 });
 
+test("participant result and contact routes use light participant-specific store paths", () => {
+  const resultRouteSource = readFileSync("app/api/events/[slug]/result/route.js", "utf8");
+  const contactRouteSource = readFileSync("app/api/events/[slug]/contact/route.js", "utf8");
+  const storeSource = readFileSync("src/store.js", "utf8");
+  const postgresSource = readFileSync("src/db/postgresStore.js", "utf8");
+  const postgresResultSource = postgresSource.match(/export async function getParticipantResult[\s\S]*?(?=\nexport async function|\nasync function|\nfunction |$)/)?.[0] ?? "";
+  const postgresContactSource = postgresSource.match(/export async function viewContact[\s\S]*?(?=\nexport async function|\nasync function|\nfunction |$)/)?.[0] ?? "";
+
+  assert.match(resultRouteSource, /getParticipantResultFromStore/);
+  assert.doesNotMatch(resultRouteSource, /readDb/);
+  assert.match(contactRouteSource, /viewContactFromStore/);
+  assert.doesNotMatch(contactRouteSource, /mutateDb/);
+  assert.match(storeSource, /getParticipantResultFromStore/);
+  assert.match(storeSource, /viewContactFromStore/);
+  assert.match(postgresSource, /export async function getParticipantResult/);
+  assert.match(postgresSource, /export async function viewContact/);
+  assert.doesNotMatch(postgresResultSource, /snapshotFromDb/);
+  assert.doesNotMatch(postgresContactSource, /snapshotFromDb/);
+  assert.doesNotMatch(postgresContactSource, /writeSnapshot/);
+});
+
 test("admin API routes use signed cookie auth and keep admin path hidden", () => {
   const authHelper = readFileSync("src/http/adminAuth.js", "utf8");
   assert.match(authHelper, /buboo_admin_session/);
